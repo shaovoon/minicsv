@@ -6,18 +6,31 @@
 
 #pragma once
 
+#define USE_BOOST_PTR
+#define USE_BOOST_LEXICAL_CAST
+
 #ifndef MiniCSV_H
 	#define MiniCSV_H
 
 #include <string>
 #include <sstream>
 #include <fstream>
-#include <memory>
+#ifdef USE_BOOST_PTR
+#	include <boost/shared_ptr.hpp>
+#else
+#	include <memory>
+#endif
+
+#ifdef USE_BOOST_LEXICAL_CAST
+#	include <boost/lexical_cast.hpp>
+#endif
+
 
 #define NEWLINE '\n'
 
 namespace csv
 {
+
 	struct istruct
 	{
 		istruct() : str(""), pos(0), delimiter(',') {}
@@ -29,13 +42,18 @@ namespace csv
 	class ifstream
 	{
 	public:
+#ifdef USE_BOOST_PTR
+	typedef boost::shared_ptr<istruct> istruct_ptr;
+#else
+	typedef std::shared_ptr<istruct> istruct_ptr;
+#endif
 		ifstream()
 		{
-			m_ptr = std::shared_ptr<istruct>(new istruct());
+			m_ptr = istruct_ptr(new istruct());
 		}
 		ifstream(const char * file, std::ios_base::openmode mode)
 		{
-			m_ptr = std::shared_ptr<istruct>(new istruct());
+			m_ptr = istruct_ptr(new istruct());
 			m_ptr->istm.open(file, mode);
 		}
 		ifstream(ifstream& other)
@@ -98,26 +116,9 @@ namespace csv
 			return str;
 		}
 	private:
-		std::shared_ptr<istruct> m_ptr;
+		istruct_ptr m_ptr;
 
 	};
-	template<typename T>
-	ifstream& operator >> (ifstream& istm, T& val)
-	{
-		std::string str = istm.get_delimited_str();
-		std::istringstream is(str);
-		
-		is >> val;
-
-		return istm;
-	}
-	template<>
-	ifstream& operator >> (ifstream& istm, std::string& val)
-	{
-		val = istm.get_delimited_str();
-
-		return istm;
-	}
 
 	struct ostruct
 	{
@@ -129,13 +130,19 @@ namespace csv
 	class ofstream
 	{
 	public:
+#ifdef USE_BOOST_PTR
+	typedef boost::shared_ptr<ostruct> ostruct_ptr;
+#else
+	typedef std::shared_ptr<ostruct> ostruct_ptr;
+#endif
+
 		ofstream()
 		{
-			m_ptr = std::shared_ptr<ostruct>(new ostruct());
+			m_ptr = ostruct_ptr(new ostruct());
 		}
 		ofstream(const char * file, std::ios_base::openmode mode)
 		{
-			m_ptr = std::shared_ptr<ostruct>(new ostruct());
+			m_ptr = ostruct_ptr(new ostruct());
 			m_ptr->ostm.open(file, mode);
 		}
 		ofstream(ofstream& other)
@@ -166,41 +173,65 @@ namespace csv
 		{
 			return m_ptr->delimiter;
 		}
-		std::shared_ptr<ostruct>& get_ptr()
+		ostruct_ptr& get_ptr()
 		{
 			return m_ptr;
 		}
 	private:
-		std::shared_ptr<ostruct> m_ptr;
+		ostruct_ptr m_ptr;
 	};
 
-	template<typename T>
-	ofstream& operator << (ofstream& ostm, const T& val)
-	{
-		if(!ostm.get_ptr()->after_newline)
-			ostm.get_ptr()->ostm << ostm.get_ptr()->delimiter;
 
+} // ns csv
+
+template<typename T>
+csv::ifstream& operator >> (csv::ifstream& istm, T& val)
+{
+	std::string str = istm.get_delimited_str();
+	
+#ifdef USE_BOOST_LEXICAL_CAST
+	val = boost::lexical_cast<T>(str);
+#else
+	std::istringstream is(str);
+	is >> val;
+#endif
+
+	return istm;
+}
+template<>
+csv::ifstream& operator >> (csv::ifstream& istm, std::string& val)
+{
+	val = istm.get_delimited_str();
+
+	return istm;
+}
+
+template<typename T>
+csv::ofstream& operator << (csv::ofstream& ostm, const T& val)
+{
+	if(!ostm.get_ptr()->after_newline)
+		ostm.get_ptr()->ostm << ostm.get_ptr()->delimiter;
+
+	ostm.get_ptr()->ostm << val;
+
+	ostm.get_ptr()->after_newline = false;
+
+	return ostm;
+}
+template<>
+csv::ofstream& operator << (csv::ofstream& ostm, const char& val)
+{
+	if(val==NEWLINE)
+	{
+		ostm.get_ptr()->ostm << std::endl;
+
+		ostm.get_ptr()->after_newline = true;
+	}
+	else
 		ostm.get_ptr()->ostm << val;
 
-		ostm.get_ptr()->after_newline = false;
-
-		return ostm;
-	}
-	template<>
-	ofstream& operator << (ofstream& ostm, const char& val)
-	{
-		if(val==NEWLINE)
-		{
-			ostm.get_ptr()->ostm << std::endl;
-
-			ostm.get_ptr()->after_newline = true;
-		}
-		else
-			ostm.get_ptr()->ostm << val;
-
-		return ostm;
-	}
-
+	return ostm;
 }
+
 
 #endif // MiniCSV_H

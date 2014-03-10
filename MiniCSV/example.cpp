@@ -16,7 +16,6 @@ int main()
 	os.set_delimiter('\t');
 	if(os.is_open())
 	{
-		using namespace csv;
 		Product product("Shampoo", 200, 15.0f);
 		os << product.name << product.qty << product.price << NEWLINE;
 		Product product2("Soap", 300, 6.0f);
@@ -28,7 +27,6 @@ int main()
 	is.set_delimiter('\t');
 	if(is.is_open())
 	{
-		using namespace csv;
 		Product temp("Shampoo", 200, 15.0f);
 		while(!is.eof())
 		{
