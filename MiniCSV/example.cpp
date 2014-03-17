@@ -27,7 +27,7 @@ int main()
 	is.set_delimiter('\t');
 	if(is.is_open())
 	{
-		Product temp("Shampoo", 200, 15.0f);
+		Product temp;
 		while(!is.eof())
 		{
 			is >> temp.name >> temp.qty >> temp.price;

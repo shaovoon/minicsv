@@ -1,13 +1,15 @@
 // The MIT License (MIT)
-// Minimalistic CSV Streams
+// Minimalistic CSV Streams 1.2
 // Copyright (C) 2014, by Wong Shao Voon (shaovoon@yahoo.com)
 //
 // http://opensource.org/licenses/MIT
+//
+// version 1.2 : make use of make_shared
 
 #pragma once
 
-#define USE_BOOST_PTR
-#define USE_BOOST_LEXICAL_CAST
+//#define USE_BOOST_PTR
+//#define USE_BOOST_LEXICAL_CAST
 
 #ifndef MiniCSV_H
 	#define MiniCSV_H
@@ -17,6 +19,7 @@
 #include <fstream>
 #ifdef USE_BOOST_PTR
 #	include <boost/shared_ptr.hpp>
+#	include <boost/make_shared.hpp>
 #else
 #	include <memory>
 #endif
@@ -24,7 +27,6 @@
 #ifdef USE_BOOST_LEXICAL_CAST
 #	include <boost/lexical_cast.hpp>
 #endif
-
 
 #define NEWLINE '\n'
 
@@ -49,11 +51,19 @@ namespace csv
 #endif
 		ifstream()
 		{
-			m_ptr = istruct_ptr(new istruct());
+#ifdef USE_BOOST_PTR
+			m_ptr = boost::make_shared<istruct>();
+#else
+			m_ptr = std::make_shared<istruct>();
+#endif
 		}
 		ifstream(const char * file, std::ios_base::openmode mode)
 		{
-			m_ptr = istruct_ptr(new istruct());
+#ifdef USE_BOOST_PTR
+			m_ptr = boost::make_shared<istruct>();
+#else
+			m_ptr = std::make_shared<istruct>();
+#endif
 			m_ptr->istm.open(file, mode);
 		}
 		ifstream(ifstream& other)
@@ -138,11 +148,19 @@ namespace csv
 
 		ofstream()
 		{
-			m_ptr = ostruct_ptr(new ostruct());
+#ifdef USE_BOOST_PTR
+			m_ptr = boost::make_shared<ostruct>();
+#else
+			m_ptr = std::make_shared<ostruct>();
+#endif
 		}
 		ofstream(const char * file, std::ios_base::openmode mode)
 		{
-			m_ptr = ostruct_ptr(new ostruct());
+#ifdef USE_BOOST_PTR
+			m_ptr = boost::make_shared<ostruct>();
+#else
+			m_ptr = std::make_shared<ostruct>();
+#endif
 			m_ptr->ostm.open(file, mode);
 		}
 		ofstream(ofstream& other)
