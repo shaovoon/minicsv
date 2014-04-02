@@ -1,10 +1,12 @@
 // The MIT License (MIT)
-// Minimalistic CSV Streams 1.2
+// Minimalistic CSV Streams 1.3
 // Copyright (C) 2014, by Wong Shao Voon (shaovoon@yahoo.com)
 //
 // http://opensource.org/licenses/MIT
 //
 // version 1.2 : make use of make_shared
+// version 1.3 : fixed: to when reading the last line and it does not have linefeed
+//               added: skip_1st_line and skip_line functions to ifstream class
 
 #pragma once
 
@@ -84,7 +86,7 @@ namespace csv
 		}
 		bool eof() const
 		{
-			return m_ptr->istm.eof();
+			return (m_ptr->istm.eof()&&m_ptr->str == "");
 		}
 		void set_delimiter(char delimiter)
 		{
@@ -93,6 +95,23 @@ namespace csv
 		char get_delimiter() const
 		{
 			return m_ptr->delimiter;
+		}
+		void skip_1st_line()
+		{
+			if(!m_ptr->istm.eof())
+			{
+				std::getline(m_ptr->istm, m_ptr->str); // read 1st line.
+				std::getline(m_ptr->istm, m_ptr->str); // read 2nd line.
+				m_ptr->pos = 0;
+			}
+		}
+		void skip_line()
+		{
+			if(!m_ptr->istm.eof())
+			{
+				std::getline(m_ptr->istm, m_ptr->str);
+				m_ptr->pos = 0;
+			}
 		}
 		std::string get_delimited_str()
 		{
@@ -108,7 +127,10 @@ namespace csv
 						m_ptr->pos = 0;
 					}
 					else
+					{
+						m_ptr->str = "";
 						break;
+					}
 
 					if(!str.empty())
 						return str;
