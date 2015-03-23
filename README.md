@@ -28,6 +28,7 @@ int main()
         Product product2("Soap", 300, 6.0f);
         os << product2.name << product2.qty << product2.price << NEWLINE;
     }
+    os.flush();
     return 0;
 }
 ```
@@ -45,7 +46,7 @@ int main()
     if(is.is_open())
     {
         Product temp;
-        while(!is.eof())
+        while(is.read_line())
         {
             is >> temp.name >> temp.qty >> temp.price;
             // display the read items
