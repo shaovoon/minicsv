@@ -28,7 +28,7 @@ int main()
 	if(is.is_open())
 	{
 		Product temp;
-		while(!is.eof())
+		while(is.read_line())
 		{
 			is >> temp.name >> temp.qty >> temp.price;
 			// display the read items

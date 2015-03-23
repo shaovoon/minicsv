@@ -1,7 +1,7 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MiniCSV", "MiniCSV\MiniCSV.vcxproj", "{71EE04CF-C549-4E5C-B786-23E8FEC40F83}"
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "minicsv", "minicsv\minicsv.vcproj", "{D63286CD-48C0-4A6A-9030-B3D03AB50490}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -9,10 +9,10 @@ Global
 		Release|Win32 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{71EE04CF-C549-4E5C-B786-23E8FEC40F83}.Debug|Win32.ActiveCfg = Debug|Win32
-		{71EE04CF-C549-4E5C-B786-23E8FEC40F83}.Debug|Win32.Build.0 = Debug|Win32
-		{71EE04CF-C549-4E5C-B786-23E8FEC40F83}.Release|Win32.ActiveCfg = Release|Win32
-		{71EE04CF-C549-4E5C-B786-23E8FEC40F83}.Release|Win32.Build.0 = Release|Win32
+		{D63286CD-48C0-4A6A-9030-B3D03AB50490}.Debug|Win32.ActiveCfg = Debug|Win32
+		{D63286CD-48C0-4A6A-9030-B3D03AB50490}.Debug|Win32.Build.0 = Debug|Win32
+		{D63286CD-48C0-4A6A-9030-B3D03AB50490}.Release|Win32.ActiveCfg = Release|Win32
+		{D63286CD-48C0-4A6A-9030-B3D03AB50490}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

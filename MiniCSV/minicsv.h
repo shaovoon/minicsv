@@ -8,6 +8,7 @@
 // version 1.3 : fixed: to when reading the last line and it does not have linefeed
 //               added: skip_1st_line and skip_line functions to ifstream class
 // version 1.4 : Removed the use of smart ptr.
+// version 1.5 : Performance increase on writing without flushing every line.
 
 //#define USE_BOOST_LEXICAL_CAST
 
@@ -56,10 +57,8 @@ namespace csv
 		{
 			return istm.is_open();
 		}
-		bool eof() const
-		{
-			return (istm.eof()&&str == "");
-		}
+		// eof is replaced by read_line
+		//bool eof() const
 		void set_delimiter(char delimiter_)
 		{
 			delimiter = delimiter_;
@@ -67,15 +66,6 @@ namespace csv
 		char get_delimiter() const
 		{
 			return delimiter;
-		}
-		void skip_1st_line()
-		{
-			if(!istm.eof())
-			{
-				std::getline(istm, str); // read 1st line.
-				std::getline(istm, str); // read 2nd line.
-				pos = 0;
-			}
 		}
 		void skip_line()
 		{
@@ -85,6 +75,21 @@ namespace csv
 				pos = 0;
 			}
 		}
+		bool read_line()
+		{
+			this->str = "";
+			if(!istm.eof())
+			{
+				std::getline(istm, this->str);
+				pos = 0;
+
+				if(this->str.empty())
+					return false;
+
+				return true;
+			}
+			return false;
+		}
 		std::string get_delimited_str()
 		{
 			std::string str = "";
@@ -93,19 +98,9 @@ namespace csv
 			{
 				if(pos>=this->str.size())
 				{
-					if(!istm.eof())
-					{
-						std::getline(istm, this->str);
-						pos = 0;
-					}
-					else
-					{
-						this->str = "";
-						break;
-					}
+					this->str = "";
 
-					if(!str.empty())
-						return str;
+					return str;
 				}
 
 				ch = this->str[pos];
@@ -227,7 +222,7 @@ csv::ofstream& operator << (csv::ofstream& ostm, const char& val)
 {
 	if(val==NEWLINE)
 	{
-		ostm.get_ofstream() << std::endl;
+		ostm.get_ofstream() << NEWLINE;
 
 		ostm.set_after_newline(true);
 	}
