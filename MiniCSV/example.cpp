@@ -21,6 +21,7 @@ int main()
 		Product product2("Soap", 300, 6.0f);
 		os << product2.name << product2.qty << product2.price << NEWLINE;
 	}
+	os.flush();
 	os.close();
 
 	csv::ifstream is("products.txt", std::ios_base::in);
