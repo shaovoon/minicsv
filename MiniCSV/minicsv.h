@@ -198,7 +198,7 @@ csv::ifstream& operator >> (csv::ifstream& istm, T& val)
 	return istm;
 }
 template<>
-csv::ifstream& operator >> (csv::ifstream& istm, std::string& val)
+inline csv::ifstream& operator >> (csv::ifstream& istm, std::string& val)
 {
 	val = istm.get_delimited_str();
 
@@ -218,7 +218,7 @@ csv::ofstream& operator << (csv::ofstream& ostm, const T& val)
 	return ostm;
 }
 template<>
-csv::ofstream& operator << (csv::ofstream& ostm, const char& val)
+inline csv::ofstream& operator << (csv::ofstream& ostm, const char& val)
 {
 	if(val==NEWLINE)
 	{
