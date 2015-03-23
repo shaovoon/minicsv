@@ -2,7 +2,7 @@ Bare minimal CSV stream based on C++ file streams where the stream operator can 
 
 This is a example on how to write to CSV.
 
-```
+```cpp
 #include "minicsv.h"
 
 struct Product
@@ -32,7 +32,7 @@ int main()
 
 This is a example on how to read from the same CSV.
 
-```
+```cpp
 #include "minicsv.h"
 #include <iostream>
 
@@ -61,4 +61,4 @@ Shampoo,200,15
 Soap,300,6
 ```
 
-http://www.codeproject.com/Articles/741183/Minimalistic-CSV-Streams
+[CodeProject Tutorial](http://www.codeproject.com/Articles/741183/Minimalistic-CSV-Streams)
