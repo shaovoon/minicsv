@@ -333,11 +333,8 @@ csv::ofstream& operator << (csv::ofstream& ostm, const std::string& val)
 	if (!ostm.get_after_newline())
 		ostm.get_ofstream() << ostm.get_delimiter();
 
-	std::ostringstream os_temp;
-
-	os_temp << val;
-
-	ostm.escape_str_and_output(os_temp.str());
+	std::string temp = val;
+	ostm.escape_str_and_output(temp);
 
 	ostm.set_after_newline(false);
 
@@ -571,11 +568,8 @@ csv::ostringstream& operator << (csv::ostringstream& ostm, const std::string& va
 	if (!ostm.get_after_newline())
 		ostm.get_ostringstream() << ostm.get_delimiter();
 
-	std::ostringstream os_temp;
-
-	os_temp << val;
-
-	ostm.escape_str_and_output(os_temp.str());
+	std::string temp = val;
+	ostm.escape_str_and_output(temp);
 
 	ostm.set_after_newline(false);
 
