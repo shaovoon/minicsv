@@ -10,6 +10,7 @@
 // version 1.4 : Removed the use of smart ptr.
 // version 1.5 : Performance increase on writing without flushing every line.
 // version 1.6 : Add string streams
+// version 1.7 : You MUST specify the escape/unescape string when calling set_delimiter. Option to surround/trim string with quotes
 
 //#define USE_BOOST_LEXICAL_CAST
 
@@ -28,11 +29,62 @@
 
 namespace csv
 {
+	inline std::string const & replace(std::string & src, std::string const & to_find, std::string const & to_replace)
+	{
+		size_t pos = 0;
+		while (std::string::npos != pos)
+		{
+			pos = src.find(to_find, pos);
+
+			if (std::string::npos != pos)
+			{
+				src.erase(pos, to_find.size());
+				src.insert(pos, to_replace);
+				pos += to_replace.size();
+			}
+		}
+
+		return src;
+	}
+
+	inline std::string trim_right(const std::string& str, const std::string& trimChars)
+	{
+		std::string result = "";
+		size_t endpos = str.find_last_not_of(trimChars);
+		if (std::string::npos != endpos)
+		{
+			result = str.substr(0, endpos + 1);
+		}
+		else
+			result = str;
+
+		return result;
+	}
+
+	inline std::string trim_left(const std::string& str, const std::string& trimChars)
+	{
+		std::string result = "";
+
+		size_t startpos = str.find_first_not_of(trimChars);
+		if (std::string::npos != startpos)
+		{
+			result = str.substr(startpos);
+		}
+		else
+			result = str;
+
+		return result;
+	}
+
+	inline std::string trim(const std::string& str, const std::string& trimChars)
+	{
+		return trim_left(trim_right(str, trimChars), trimChars);
+	}
 
 	class ifstream
 	{
 	public:
-		ifstream() : str(""), pos(0), delimiter(',')
+		ifstream() : str(""), pos(0), delimiter(","), unescape_str("##"), trim_quote_on_str(true), trim_quote('\"')
 		{
 		}
 		ifstream(const char * file)
@@ -49,6 +101,9 @@ namespace csv
 			str = "";
 			pos = 0;
 			delimiter = ',';
+			unescape_str = "##";
+			trim_quote_on_str = true;
+			trim_quote = '\"';
 		}
 		void close()
 		{
@@ -58,15 +113,25 @@ namespace csv
 		{
 			return istm.is_open();
 		}
+		void enable_trim_quote_on_str(bool enable, char quote)
+		{
+			trim_quote_on_str = enable;
+			trim_quote = quote;
+		}
 		// eof is replaced by read_line
 		//bool eof() const
-		void set_delimiter(char delimiter_)
+		void set_delimiter(char delimiter_, std::string const & unescape_str_)
 		{
 			delimiter = delimiter_;
+			unescape_str = unescape_str_;
 		}
-		char get_delimiter() const
+		std::string const &  get_delimiter() const
 		{
 			return delimiter;
+		}
+		std::string const &  get_unescape_str() const
+		{
+			return unescape_str;
 		}
 		void skip_line()
 		{
@@ -101,32 +166,40 @@ namespace csv
 				{
 					this->str = "";
 
-					return str;
+					return unescape(str);
 				}
 
 				ch = this->str[pos];
 				++(pos);
-				if(ch==delimiter||ch=='\r'||ch=='\n')
+				if(ch==delimiter[0]||ch=='\r'||ch=='\n')
 					break;
 
 				str += ch;
 			}
 			while(true);
 
-			return str;
+			return unescape(str);
+		}
+		std::string unescape(std::string & src)
+		{
+			src = unescape_str.empty() ? src : replace(src, unescape_str, delimiter);
+			return trim_quote_on_str ? trim(src, std::string(1, trim_quote)) : src;
 		}
 	private:
 		std::ifstream istm;
 		std::string str;
 		size_t pos;
-		char delimiter;
+		std::string delimiter;
+		std::string unescape_str;
+		bool trim_quote_on_str;
+		char trim_quote;
 	};
 
 	class ofstream
 	{
 	public:
 
-		ofstream() : after_newline(true), delimiter(',')
+		ofstream() : after_newline(true), delimiter(","), escape_str("##"), surround_quote_on_str(true), surround_quote('\"')
 		{
 		}
 		ofstream(const char * file)
@@ -142,6 +215,9 @@ namespace csv
 		{
 			after_newline = true; 
 			delimiter = ',';
+			escape_str = "##";
+			surround_quote_on_str = true;
+			surround_quote = '\"';
 		}
 		void flush()
 		{
@@ -155,13 +231,23 @@ namespace csv
 		{
 			return ostm.is_open();
 		}
-		void set_delimiter(char delimiter_)
+		void enable_surround_quote_on_str(bool enable, char quote)
+		{
+			surround_quote_on_str = enable;
+			surround_quote = quote;
+		}
+		void set_delimiter(char delimiter_, std::string const & escape_str_)
 		{
 			delimiter = delimiter_;
+			escape_str = escape_str_;
 		}
-		char get_delimiter() const
+		std::string const &  get_delimiter() const
 		{
 			return delimiter;
+		}
+		std::string const &  get_escape_str() const
+		{
+			return escape_str;
 		}
 		void set_after_newline(bool after_newline_)
 		{
@@ -175,10 +261,29 @@ namespace csv
 		{
 			return ostm;
 		}
+		void escape_and_output(std::string & src)
+		{
+			ostm << ((escape_str.empty()) ? src : replace(src, delimiter, escape_str));
+		}
+		void escape_str_and_output(std::string & src)
+		{
+			src = ((escape_str.empty()) ? src : replace(src, delimiter, escape_str));
+			if (surround_quote_on_str)
+			{
+				ostm << surround_quote << src << surround_quote;
+			}
+			else
+			{
+				ostm << src;
+			}
+		}
 	private:
 		std::ofstream ostm;
 		bool after_newline;
-		char delimiter;
+		std::string delimiter;
+		std::string escape_str;
+		bool surround_quote_on_str;
+		char surround_quote;
 	};
 
 
@@ -212,7 +317,27 @@ csv::ofstream& operator << (csv::ofstream& ostm, const T& val)
 	if(!ostm.get_after_newline())
 		ostm.get_ofstream() << ostm.get_delimiter();
 
-	ostm.get_ofstream() << val;
+	std::ostringstream os_temp;
+
+	os_temp << val;
+
+	ostm.escape_and_output(os_temp.str());
+
+	ostm.set_after_newline(false);
+
+	return ostm;
+}
+template<>
+csv::ofstream& operator << (csv::ofstream& ostm, const std::string& val)
+{
+	if (!ostm.get_after_newline())
+		ostm.get_ofstream() << ostm.get_delimiter();
+
+	std::ostringstream os_temp;
+
+	os_temp << val;
+
+	ostm.escape_str_and_output(os_temp.str());
 
 	ostm.set_after_newline(false);
 
@@ -228,7 +353,13 @@ inline csv::ofstream& operator << (csv::ofstream& ostm, const char& val)
 		ostm.set_after_newline(true);
 	}
 	else
-		ostm.get_ofstream() << val;
+	{
+		std::ostringstream os_temp;
+
+		os_temp << val;
+
+		ostm.escape_and_output(os_temp.str());
+	}
 
 	return ostm;
 }
@@ -242,17 +373,30 @@ public:
 	istringstream(const char * text)
 		: str("")
 		, pos(0)
-		, delimiter(',')
+		, delimiter(",")
+		, unescape_str("##")
+		, trim_quote_on_str(true)
+		, trim_quote('\"')
 	{
 		istm.str(text);
 	}
-	void set_delimiter(char delimiter_)
+	void enable_trim_quote_on_str(bool enable, char quote)
+	{
+		trim_quote_on_str = enable;
+		trim_quote = quote;
+	}
+	void set_delimiter(char delimiter_, std::string const & unescape_str_)
 	{
 		delimiter = delimiter_;
+		unescape_str = unescape_str_;
 	}
-	char get_delimiter() const
+	std::string const & get_delimiter() const
 	{
 		return delimiter;
+	}
+	std::string const &  get_unescape_str() const
+	{
+		return unescape_str;
 	}
 	void skip_line()
 	{
@@ -284,40 +428,59 @@ public:
 			{
 				this->str = "";
 
-				return str;
+				return unescape(str);
 			}
 
 			ch = this->str[pos];
 			++(pos);
-			if (ch == delimiter || ch == '\r' || ch == '\n')
+			if (ch == delimiter[0] || ch == '\r' || ch == '\n')
 				break;
 
 			str += ch;
 		} while (true);
 
-		return str;
+		return unescape(str);
+	}
+
+	std::string unescape(std::string & src)
+	{
+		src = unescape_str.empty() ? src : replace(src, unescape_str, delimiter);
+		return trim_quote_on_str ? trim(src, std::string(1, trim_quote)) : src;
 	}
 private:
 	std::istringstream istm;
 	std::string str;
 	size_t pos;
-	char delimiter;
+	std::string delimiter;
+	std::string unescape_str;
+	bool trim_quote_on_str;
+	char trim_quote;
 };
 
 class ostringstream
 {
 public:
 
-	ostringstream() : after_newline(true), delimiter(',')
+	ostringstream() : after_newline(true), delimiter(","), escape_str("##"), surround_quote_on_str(true), surround_quote('\"')
 	{
 	}
-	void set_delimiter(char delimiter_)
+	void enable_surround_quote_on_str(bool enable, char quote)
+	{
+		surround_quote_on_str = enable;
+		surround_quote = quote;
+	}
+	void set_delimiter(char delimiter_, std::string const & escape_str_)
 	{
 		delimiter = delimiter_;
+		escape_str = escape_str_;
 	}
-	char get_delimiter() const
+	std::string const & get_delimiter() const
 	{
 		return delimiter;
+	}
+	std::string const &  get_escape_str() const
+	{
+		return escape_str;
 	}
 	void set_after_newline(bool after_newline_)
 	{
@@ -335,11 +498,30 @@ public:
 	{
 		return ostm.str();
 	}
+	void escape_and_output(std::string & src)
+	{
+		ostm << ((escape_str.empty()) ? src : replace(src, delimiter, escape_str));
+	}
+	void escape_str_and_output(std::string & src)
+	{
+		src = ((escape_str.empty()) ? src : replace(src, delimiter, escape_str));
+		if (surround_quote_on_str)
+		{
+			ostm << surround_quote << src << surround_quote;
+		}
+		else
+		{
+			ostm << src;
+		}
+	}
 
 private:
 	std::ostringstream ostm;
 	bool after_newline;
-	char delimiter;
+	std::string delimiter;
+	std::string escape_str;
+	bool surround_quote_on_str;
+	char surround_quote;
 };
 
 
@@ -373,12 +555,33 @@ csv::ostringstream& operator << (csv::ostringstream& ostm, const T& val)
 	if (!ostm.get_after_newline())
 		ostm.get_ostringstream() << ostm.get_delimiter();
 
-	ostm.get_ostringstream() << val;
+	std::ostringstream os_temp;
+
+	os_temp << val;
+
+	ostm.escape_and_output(os_temp.str());
 
 	ostm.set_after_newline(false);
 
 	return ostm;
 }
+template<>
+csv::ostringstream& operator << (csv::ostringstream& ostm, const std::string& val)
+{
+	if (!ostm.get_after_newline())
+		ostm.get_ostringstream() << ostm.get_delimiter();
+
+	std::ostringstream os_temp;
+
+	os_temp << val;
+
+	ostm.escape_str_and_output(os_temp.str());
+
+	ostm.set_after_newline(false);
+
+	return ostm;
+}
+
 template<>
 inline csv::ostringstream& operator << (csv::ostringstream& ostm, const char& val)
 {
@@ -389,7 +592,13 @@ inline csv::ostringstream& operator << (csv::ostringstream& ostm, const char& va
 		ostm.set_after_newline(true);
 	}
 	else
-		ostm.get_ostringstream() << val;
+	{
+		std::ostringstream os_temp;
+
+		os_temp << val;
+
+		ostm.escape_and_output(os_temp.str());
+	}
 
 	return ostm;
 }

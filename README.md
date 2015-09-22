@@ -20,12 +20,13 @@ struct Product
 int main()
 {
     csv::ofstream os("products.txt", std::ios_base::out);
-    os.set_delimiter('\t');
+    os.set_delimiter(',', "$$");
+    os.enable_surround_quote_on_str(true, '\"');
     if(os.is_open())
     {
         Product product("Shampoo", 200, 15.0f);
         os << product.name << product.qty << product.price << NEWLINE;
-        Product product2("Soap", 300, 6.0f);
+        Product product2("Towel, Soap, Shower Foam", 300, 6.0f);
         os << product2.name << product2.qty << product2.price << NEWLINE;
     }
     os.flush();
@@ -42,7 +43,8 @@ This is a example on how to read from the same CSV.
 int main()
 {
     csv::ifstream is("products.txt", std::ios_base::in);
-    is.set_delimiter('\t');
+    is.set_delimiter(',', "$$");
+    is.enable_trim_quote_on_str(true, '\"');
     if(is.is_open())
     {
         Product temp;
@@ -57,11 +59,18 @@ int main()
 }
 ```
 
+The file contents is shown below.
+
+```
+"Shampoo",200,15
+"Towel$$ Soap$$ Shower Foam",300,6
+```
+
 The console output is shown below.
 
 ```
 Shampoo,200,15
-Soap,300,6
+Towel, Soap, Shower Foam,300,6
 ```
 
 [CodeProject Tutorial](http://www.codeproject.com/Articles/741183/Minimalistic-CSV-Streams)

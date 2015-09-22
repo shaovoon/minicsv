@@ -15,19 +15,21 @@ int main()
 	// test file streams
 	{
 		csv::ofstream os("products.txt");
-		os.set_delimiter('\t');
+		os.set_delimiter(',', "$$");
+		os.enable_surround_quote_on_str(true, '\"');
 		if (os.is_open())
 		{
 			Product product("Shampoo", 200, 15.0f);
 			os << product.name << product.qty << product.price << NEWLINE;
-			Product product2("Soap", 300, 6.0f);
+			Product product2("Towel, Soap, Shower Foam", 300, 6.0f);
 			os << product2.name << product2.qty << product2.price << NEWLINE;
 		}
 		os.flush();
 		os.close();
 
 		csv::ifstream is("products.txt");
-		is.set_delimiter('\t');
+		is.set_delimiter(',', "$$");
+		is.enable_trim_quote_on_str(true, '\"');
 		if (is.is_open())
 		{
 			Product temp;
@@ -43,14 +45,16 @@ int main()
 	// test string streams
 	{
 		csv::ostringstream os;
-		os.set_delimiter('\t');
+		os.set_delimiter(',', "$$");
+		os.enable_surround_quote_on_str(true, '\"');
 		Product product("Shampoo", 200, 15.0f);
 		os << product.name << product.qty << product.price << NEWLINE;
-		Product product2("Soap", 300, 6.0f);
+		Product product2("Towel, Soap, Shower Foam", 300, 6.0f);
 		os << product2.name << product2.qty << product2.price << NEWLINE;
 
 		csv::istringstream is(os.get_text().c_str());
-		is.set_delimiter('\t');
+		is.set_delimiter(',', "$$");
+		is.enable_trim_quote_on_str(true, '\"');
 		Product temp;
 		while (is.read_line())
 		{
