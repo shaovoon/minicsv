@@ -10,13 +10,33 @@ struct Product
 	float price;
 };
 
+template<>
+inline csv::istringstream& operator >> (csv::istringstream& istm, Product& val)
+{
+	istm >> val.name;
+	istm >> val.qty;
+	istm >> val.price;
+
+	return istm;
+}
+
+template<>
+inline csv::ostringstream& operator << (csv::ostringstream& ostm, const Product& val)
+{
+	ostm << val.name;
+	ostm << val.qty;
+	ostm << val.price;
+
+	return ostm;
+}
+
+
 int main()
 {
 	// test file streams
 	{
 		csv::ofstream os("products.txt");
 		os.set_delimiter(',', "$$");
-		os.enable_surround_quote_on_str(true, '\"');
 		if (os.is_open())
 		{
 			Product product("Shampoo", 200, 15.0f);
@@ -29,38 +49,35 @@ int main()
 
 		csv::ifstream is("products.txt");
 		is.set_delimiter(',', "$$");
-		is.enable_trim_quote_on_str(true, '\"');
 		if (is.is_open())
 		{
-			Product temp;
+			Product product;
 			while (is.read_line())
 			{
-				is >> temp.name >> temp.qty >> temp.price;
+				is >> product.name >> product.qty >> product.price;
 				// display the read items
-				std::cout << temp.name << "," << temp.qty << "," << temp.price << std::endl;
+				std::cout << product.name << "," << product.qty << "," << product.price << std::endl;
 			}
 		}
 	}
 
-	// test string streams
+	// test string streams using overloaded stream operators for Product
 	{
 		csv::ostringstream os;
 		os.set_delimiter(',', "$$");
-		os.enable_surround_quote_on_str(true, '\"');
 		Product product("Shampoo", 200, 15.0f);
-		os << product.name << product.qty << product.price << NEWLINE;
+		os << product << NEWLINE;
 		Product product2("Towel, Soap, Shower Foam", 300, 6.0f);
-		os << product2.name << product2.qty << product2.price << NEWLINE;
+		os << product2 << NEWLINE;
 
 		csv::istringstream is(os.get_text().c_str());
 		is.set_delimiter(',', "$$");
-		is.enable_trim_quote_on_str(true, '\"');
-		Product temp;
+		Product prod;
 		while (is.read_line())
 		{
-			is >> temp.name >> temp.qty >> temp.price;
+			is >> prod;
 			// display the read items
-			std::cout << temp.name << "," << temp.qty << "," << temp.price << std::endl;
+			std::cout << prod.name << "|" << prod.qty << "|" << prod.price << std::endl;
 		}
 	}
 	return 0;

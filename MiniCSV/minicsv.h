@@ -4,13 +4,15 @@
 //
 // http://opensource.org/licenses/MIT
 //
-// version 1.2 : make use of make_shared
-// version 1.3 : fixed: to when reading the last line and it does not have linefeed
-//               added: skip_1st_line and skip_line functions to ifstream class
-// version 1.4 : Removed the use of smart ptr.
-// version 1.5 : Performance increase on writing without flushing every line.
-// version 1.6 : Add string streams
-// version 1.7 : You MUST specify the escape/unescape string when calling set_delimiter. Option to surround/trim string with quotes
+// version 1.2   : make use of make_shared
+// version 1.3   : fixed: to when reading the last line and it does not have linefeed
+//                 added: skip_1st_line and skip_line functions to ifstream class
+// version 1.4   : Removed the use of smart ptr.
+// version 1.5   : Performance increase on writing without flushing every line.
+// version 1.6   : Add string streams
+// version 1.7   : You MUST specify the escape/unescape string when calling set_delimiter. Option to surround/trim string with quotes
+// version 1.7.1 : Add stream operator overload usage in example.cpp
+//                 Disable the surround/trim quote on text by default
 
 //#define USE_BOOST_LEXICAL_CAST
 
@@ -84,7 +86,7 @@ namespace csv
 	class ifstream
 	{
 	public:
-		ifstream() : str(""), pos(0), delimiter(","), unescape_str("##"), trim_quote_on_str(true), trim_quote('\"')
+		ifstream() : str(""), pos(0), delimiter(","), unescape_str("##"), trim_quote_on_str(false), trim_quote('\"')
 		{
 		}
 		ifstream(const char * file)
@@ -102,7 +104,7 @@ namespace csv
 			pos = 0;
 			delimiter = ',';
 			unescape_str = "##";
-			trim_quote_on_str = true;
+			trim_quote_on_str = false;
 			trim_quote = '\"';
 		}
 		void close()
@@ -199,7 +201,7 @@ namespace csv
 	{
 	public:
 
-		ofstream() : after_newline(true), delimiter(","), escape_str("##"), surround_quote_on_str(true), surround_quote('\"')
+		ofstream() : after_newline(true), delimiter(","), escape_str("##"), surround_quote_on_str(false), surround_quote('\"')
 		{
 		}
 		ofstream(const char * file)
@@ -216,7 +218,7 @@ namespace csv
 			after_newline = true; 
 			delimiter = ',';
 			escape_str = "##";
-			surround_quote_on_str = true;
+			surround_quote_on_str = false;
 			surround_quote = '\"';
 		}
 		void flush()
@@ -372,7 +374,7 @@ public:
 		, pos(0)
 		, delimiter(",")
 		, unescape_str("##")
-		, trim_quote_on_str(true)
+		, trim_quote_on_str(false)
 		, trim_quote('\"')
 	{
 		istm.str(text);
@@ -458,7 +460,7 @@ class ostringstream
 {
 public:
 
-	ostringstream() : after_newline(true), delimiter(","), escape_str("##"), surround_quote_on_str(true), surround_quote('\"')
+	ostringstream() : after_newline(true), delimiter(","), escape_str("##"), surround_quote_on_str(false), surround_quote('\"')
 	{
 	}
 	void enable_surround_quote_on_str(bool enable, char quote)
