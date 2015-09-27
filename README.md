@@ -73,7 +73,7 @@ Towel, Soap, Shower Foam|300|6
 
 Here is on how to overload the operator for your custom type.
 
-```
+```cpp
 template<>
 inline csv::istringstream& operator >> (csv::istringstream& istm, Product& val)
 {
