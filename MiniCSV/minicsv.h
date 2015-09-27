@@ -13,7 +13,7 @@
 // version 1.7   : You MUST specify the escape/unescape string when calling set_delimiter. Option to surround/trim string with quotes
 // version 1.7.1 : Add stream operator overload usage in example.cpp
 //                 Disable the surround/trim quote on text by default
-// version 1.7.2 : stream operator overload for const char*
+// version 1.7.2 : Stream operator overload for const char*
 
 //#define USE_BOOST_LEXICAL_CAST
 
