@@ -13,6 +13,7 @@
 // version 1.7   : You MUST specify the escape/unescape string when calling set_delimiter. Option to surround/trim string with quotes
 // version 1.7.1 : Add stream operator overload usage in example.cpp
 //                 Disable the surround/trim quote on text by default
+// version 1.7.2 : stream operator overload for const char*
 
 //#define USE_BOOST_LEXICAL_CAST
 
@@ -329,6 +330,24 @@ csv::ofstream& operator << (csv::ofstream& ostm, const T& val)
 
 	return ostm;
 }
+
+template<typename T>
+csv::ofstream& operator << (csv::ofstream& ostm, const T* val)
+{
+	if (!ostm.get_after_newline())
+		ostm.get_ofstream() << ostm.get_delimiter();
+
+	std::ostringstream os_temp;
+
+	os_temp << *val;
+
+	ostm.escape_and_output(os_temp.str());
+
+	ostm.set_after_newline(false);
+
+	return ostm;
+}
+
 template<>
 csv::ofstream& operator << (csv::ofstream& ostm, const std::string& val)
 {
@@ -359,6 +378,15 @@ inline csv::ofstream& operator << (csv::ofstream& ostm, const char& val)
 
 		ostm.escape_and_output(os_temp.str());
 	}
+
+	return ostm;
+}
+template<>
+csv::ofstream& operator << (csv::ofstream& ostm, const char* val)
+{
+	const std::string temp = val;
+
+	ostm << temp;
 
 	return ostm;
 }
@@ -564,6 +592,22 @@ csv::ostringstream& operator << (csv::ostringstream& ostm, const T& val)
 
 	return ostm;
 }
+template<typename T>
+csv::ostringstream& operator << (csv::ostringstream& ostm, const T* val)
+{
+	if (!ostm.get_after_newline())
+		ostm.get_ostringstream() << ostm.get_delimiter();
+
+	std::ostringstream os_temp;
+
+	os_temp << val;
+
+	ostm.escape_and_output(os_temp.str());
+
+	ostm.set_after_newline(false);
+
+	return ostm;
+}
 template<>
 csv::ostringstream& operator << (csv::ostringstream& ostm, const std::string& val)
 {
@@ -595,6 +639,15 @@ inline csv::ostringstream& operator << (csv::ostringstream& ostm, const char& va
 
 		ostm.escape_and_output(os_temp.str());
 	}
+
+	return ostm;
+}
+template<>
+csv::ostringstream& operator << (csv::ostringstream& ostm, const char* val)
+{
+	const std::string temp = val;
+
+	ostm << temp;
 
 	return ostm;
 }

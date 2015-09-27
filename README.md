@@ -21,7 +21,6 @@ int main()
 {
     csv::ofstream os("products.txt", std::ios_base::out);
     os.set_delimiter(',', "$$");
-    os.enable_surround_quote_on_str(true, '\"');
     if(os.is_open())
     {
         Product product("Shampoo", 200, 15.0f);
@@ -44,7 +43,6 @@ int main()
 {
     csv::ifstream is("products.txt", std::ios_base::in);
     is.set_delimiter(',', "$$");
-    is.enable_trim_quote_on_str(true, '\"');
     if(is.is_open())
     {
         Product temp;
@@ -52,7 +50,7 @@ int main()
         {
             is >> temp.name >> temp.qty >> temp.price;
             // display the read items
-            std::cout << temp.name << "," << temp.qty << "," << temp.price << std::endl;
+            std::cout << temp.name << "|" << temp.qty << "|" << temp.price << std::endl;
         }
     }
     return 0;
@@ -62,15 +60,65 @@ int main()
 The file contents is shown below.
 
 ```
-"Shampoo",200,15
-"Towel$$ Soap$$ Shower Foam",300,6
+Shampoo,200,15
+Towel$$ Soap$$ Shower Foam,300,6
 ```
 
 The console output is shown below.
 
 ```
-Shampoo,200,15
-Towel, Soap, Shower Foam,300,6
+Shampoo|200|15
+Towel, Soap, Shower Foam|300|6
 ```
+
+Here is on how to overload the operator for your custom type.
+
+```
+template<>
+inline csv::istringstream& operator >> (csv::istringstream& istm, Product& val)
+{
+	istm >> val.name;
+	istm >> val.qty;
+	istm >> val.price;
+
+	return istm;
+}
+
+template<>
+inline csv::ostringstream& operator << (csv::ostringstream& ostm, const Product& val)
+{
+	ostm << val.name;
+	ostm << val.qty;
+	ostm << val.price;
+
+	return ostm;
+}
+
+int main()
+{
+    // test string streams using overloaded stream operators for Product
+    {
+        csv::ostringstream os;
+        os.set_delimiter(',', "$$");
+        Product product("Shampoo", 200, 15.0f);
+        os << product << NEWLINE;
+        Product product2("Towel, Soap, Shower Foam", 300, 6.0f);
+        os << product2 << NEWLINE;
+
+        csv::istringstream is(os.get_text().c_str());
+        is.set_delimiter(',', "$$");
+        Product prod;
+        while (is.read_line())
+        {
+            is >> prod;
+            // display the read items
+            std::cout << prod.name << "|" << prod.qty << "|" << prod.price << std::endl;
+        }
+    }
+    return 0;
+}
+```
+
+
 
 [CodeProject Tutorial](http://www.codeproject.com/Articles/741183/Minimalistic-CSV-Streams)
