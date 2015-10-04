@@ -15,6 +15,7 @@
 //                 Disable the surround/trim quote on text by default
 // version 1.7.2 : Stream operator overload for const char*
 // version 1.7.3 : Add num_of_delimiter method to ifstream and istringstream
+//                 Fix g++ compilation errors
 
 //#define USE_BOOST_LEXICAL_CAST
 
@@ -279,11 +280,11 @@ namespace csv
 		{
 			return ostm;
 		}
-		void escape_and_output(std::string & src)
+		void escape_and_output(std::string src)
 		{
 			ostm << ((escape_str.empty()) ? src : replace(src, delimiter, escape_str));
 		}
-		void escape_str_and_output(std::string & src)
+		void escape_str_and_output(std::string src)
 		{
 			src = ((escape_str.empty()) ? src : replace(src, delimiter, escape_str));
 			if (surround_quote_on_str)
@@ -555,11 +556,11 @@ public:
 	{
 		return ostm.str();
 	}
-	void escape_and_output(std::string & src)
+	void escape_and_output(std::string src)
 	{
 		ostm << ((escape_str.empty()) ? src : replace(src, delimiter, escape_str));
 	}
-	void escape_str_and_output(std::string & src)
+	void escape_str_and_output(std::string src)
 	{
 		src = ((escape_str.empty()) ? src : replace(src, delimiter, escape_str));
 		if (surround_quote_on_str)
