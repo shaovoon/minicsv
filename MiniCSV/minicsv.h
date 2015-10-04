@@ -14,6 +14,7 @@
 // version 1.7.1 : Add stream operator overload usage in example.cpp
 //                 Disable the surround/trim quote on text by default
 // version 1.7.2 : Stream operator overload for const char*
+// version 1.7.3 : Add num_of_delimiter method to ifstream and istringstream
 
 //#define USE_BOOST_LEXICAL_CAST
 
@@ -188,6 +189,20 @@ namespace csv
 			src = unescape_str.empty() ? src : replace(src, unescape_str, delimiter);
 			return trim_quote_on_str ? trim(src, std::string(1, trim_quote)) : src;
 		}
+		size_t num_of_delimiter()
+		{
+			if (delimiter.size() == 0)
+				return 0;
+
+			size_t cnt = 0;
+			for (size_t i = 0; i < str.size(); ++i)
+			{
+				if (str[i] == delimiter[0])
+					++cnt;
+			}
+			return cnt;
+		}
+
 	private:
 		std::ifstream istm;
 		std::string str;
@@ -474,6 +489,21 @@ public:
 		src = unescape_str.empty() ? src : replace(src, unescape_str, delimiter);
 		return trim_quote_on_str ? trim(src, std::string(1, trim_quote)) : src;
 	}
+
+	size_t num_of_delimiter()
+	{
+		if (delimiter.size() == 0)
+			return 0;
+
+		size_t cnt = 0;
+		for (size_t i = 0; i < str.size(); ++i)
+		{
+			if (str[i] == delimiter[0])
+				++cnt;
+		}
+		return cnt;
+	}
+
 private:
 	std::istringstream istm;
 	std::string str;
