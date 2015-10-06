@@ -16,6 +16,7 @@
 // version 1.7.2 : Stream operator overload for const char*
 // version 1.7.3 : Add num_of_delimiter method to ifstream and istringstream
 //                 Fix g++ compilation errors
+// version 1.7.4 : Add get_rest_of_line
 
 //#define USE_BOOST_LEXICAL_CAST
 
@@ -202,6 +203,10 @@ namespace csv
 					++cnt;
 			}
 			return cnt;
+		}
+		std::string get_rest_of_line()
+		{
+			return str.substr(pos);
 		}
 
 	private:
@@ -503,6 +508,10 @@ public:
 				++cnt;
 		}
 		return cnt;
+	}
+	std::string get_rest_of_line()
+	{
+		return str.substr(pos);
 	}
 
 private:
