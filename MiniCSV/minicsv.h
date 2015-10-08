@@ -17,6 +17,7 @@
 // version 1.7.3 : Add num_of_delimiter method to ifstream and istringstream
 //                 Fix g++ compilation errors
 // version 1.7.4 : Add get_rest_of_line
+// version 1.7.5 : Add terminate_on_blank_line variable. Set to false if your file format has blank lines in between.
 
 //#define USE_BOOST_LEXICAL_CAST
 
@@ -90,7 +91,7 @@ namespace csv
 	class ifstream
 	{
 	public:
-		ifstream() : str(""), pos(0), delimiter(","), unescape_str("##"), trim_quote_on_str(false), trim_quote('\"')
+		ifstream() : str(""), pos(0), delimiter(","), unescape_str("##"), trim_quote_on_str(false), trim_quote('\"'), terminate_on_blank_line(true)
 		{
 		}
 		ifstream(const char * file)
@@ -110,6 +111,7 @@ namespace csv
 			unescape_str = "##";
 			trim_quote_on_str = false;
 			trim_quote = '\"';
+			terminate_on_blank_line = true;
 		}
 		void close()
 		{
@@ -155,8 +157,13 @@ namespace csv
 				std::getline(istm, this->str);
 				pos = 0;
 
-				if(this->str.empty())
-					return false;
+				if (this->str.empty())
+				{
+					if (terminate_on_blank_line)
+						return false;
+					else
+						return read_line();
+				}
 
 				return true;
 			}
@@ -191,7 +198,7 @@ namespace csv
 			src = unescape_str.empty() ? src : replace(src, unescape_str, delimiter);
 			return trim_quote_on_str ? trim(src, std::string(1, trim_quote)) : src;
 		}
-		size_t num_of_delimiter()
+		size_t num_of_delimiter() const
 		{
 			if (delimiter.size() == 0)
 				return 0;
@@ -204,9 +211,21 @@ namespace csv
 			}
 			return cnt;
 		}
-		std::string get_rest_of_line()
+		std::string get_rest_of_line() const
 		{
 			return str.substr(pos);
+		}
+		const std::string& get_line() const
+		{
+			return str;
+		}
+		void enable_terminate_on_blank_line(bool enable)
+		{
+			terminate_on_blank_line = enable;
+		}
+		bool is_terminate_on_blank_line() const
+		{
+			return terminate_on_blank_line;
 		}
 
 	private:
@@ -217,6 +236,7 @@ namespace csv
 		std::string unescape_str;
 		bool trim_quote_on_str;
 		char trim_quote;
+		bool terminate_on_blank_line;
 	};
 
 	class ofstream
@@ -425,6 +445,7 @@ public:
 		, unescape_str("##")
 		, trim_quote_on_str(false)
 		, trim_quote('\"')
+		, terminate_on_blank_line(true)
 	{
 		istm.str(text);
 	}
@@ -460,7 +481,12 @@ public:
 			pos = 0;
 
 			if (this->str.empty())
-				return false;
+			{
+				if (terminate_on_blank_line)
+					return false;
+				else
+					return read_line();
+			}
 
 			return true;
 		}
@@ -496,7 +522,7 @@ public:
 		return trim_quote_on_str ? trim(src, std::string(1, trim_quote)) : src;
 	}
 
-	size_t num_of_delimiter()
+	size_t num_of_delimiter() const
 	{
 		if (delimiter.size() == 0)
 			return 0;
@@ -509,9 +535,21 @@ public:
 		}
 		return cnt;
 	}
-	std::string get_rest_of_line()
+	std::string get_rest_of_line() const
 	{
 		return str.substr(pos);
+	}
+	const std::string& get_line() const
+	{
+		return str;
+	}
+	void enable_terminate_on_blank_line(bool enable)
+	{
+		terminate_on_blank_line = enable;
+	}
+	bool is_terminate_on_blank_line() const
+	{
+		return terminate_on_blank_line;
 	}
 
 private:
@@ -522,6 +560,7 @@ private:
 	std::string unescape_str;
 	bool trim_quote_on_str;
 	char trim_quote;
+	bool terminate_on_blank_line;
 };
 
 class ostringstream
