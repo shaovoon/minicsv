@@ -18,6 +18,7 @@
 //                 Fix g++ compilation errors
 // version 1.7.4 : Add get_rest_of_line
 // version 1.7.5 : Add terminate_on_blank_line variable. Set to false if your file format has blank lines in between.
+// version 1.7.6 : Ignore delimiters within quotes during reading when enable_trim_quote_on_str is true;
 
 //#define USE_BOOST_LEXICAL_CAST
 
@@ -152,7 +153,7 @@ namespace csv
 		bool read_line()
 		{
 			this->str = "";
-			if(!istm.eof())
+			while(!istm.eof())
 			{
 				std::getline(istm, this->str);
 				pos = 0;
@@ -160,9 +161,9 @@ namespace csv
 				if (this->str.empty())
 				{
 					if (terminate_on_blank_line)
-						return false;
+						break;
 					else
-						return read_line();
+						continue;
 				}
 
 				return true;
@@ -173,6 +174,7 @@ namespace csv
 		{
 			std::string str = "";
 			char ch = '\0';
+			bool within_quote = false;
 			do
 			{
 				if(pos>=this->str.size())
@@ -183,8 +185,19 @@ namespace csv
 				}
 
 				ch = this->str[pos];
+				if (trim_quote_on_str)
+				{
+					if (within_quote == false && ch == trim_quote && ((pos > 0 && this->str[pos - 1] == delimiter[0]) || pos == 0))
+						within_quote = true;
+					else if (within_quote && ch == trim_quote)
+						within_quote = false;
+				}
+
 				++(pos);
-				if(ch==delimiter[0]||ch=='\r'||ch=='\n')
+
+				if (ch == delimiter[0] && within_quote == false)
+					break;
+				if (ch == '\r' || ch == '\n')
 					break;
 
 				str += ch;
@@ -475,7 +488,7 @@ public:
 	bool read_line()
 	{
 		this->str = "";
-		if (!istm.eof())
+		while (!istm.eof())
 		{
 			std::getline(istm, this->str);
 			pos = 0;
@@ -483,19 +496,21 @@ public:
 			if (this->str.empty())
 			{
 				if (terminate_on_blank_line)
-					return false;
+					break;
 				else
-					return read_line();
+					continue;
 			}
 
 			return true;
 		}
+		return false;
 		return false;
 	}
 	std::string get_delimited_str()
 	{
 		std::string str = "";
 		char ch = '\0';
+		bool within_quote = false;
 		do
 		{
 			if (pos >= this->str.size())
@@ -506,8 +521,19 @@ public:
 			}
 
 			ch = this->str[pos];
+			if (trim_quote_on_str)
+			{
+				if (within_quote == false && ch == trim_quote && ((pos > 0 && this->str[pos - 1] == delimiter[0]) || pos == 0))
+					within_quote = true;
+				else if (within_quote && ch == trim_quote)
+					within_quote = false;
+			}
+
 			++(pos);
-			if (ch == delimiter[0] || ch == '\r' || ch == '\n')
+
+			if (ch == delimiter[0] && within_quote == false)
+				break;
+			if (ch == '\r' || ch == '\n')
 				break;
 
 			str += ch;
