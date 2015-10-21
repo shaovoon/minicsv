@@ -19,6 +19,7 @@
 // version 1.7.4 : Add get_rest_of_line
 // version 1.7.5 : Add terminate_on_blank_line variable. Set to false if your file format has blank lines in between.
 // version 1.7.6 : Ignore delimiters within quotes during reading when enable_trim_quote_on_str is true;
+// version 1.7.7 : Fixed multiple symbol linkage errors
 
 //#define USE_BOOST_LEXICAL_CAST
 
@@ -403,7 +404,7 @@ csv::ofstream& operator << (csv::ofstream& ostm, const T* val)
 }
 
 template<>
-csv::ofstream& operator << (csv::ofstream& ostm, const std::string& val)
+inline csv::ofstream& operator << (csv::ofstream& ostm, const std::string& val)
 {
 	if (!ostm.get_after_newline())
 		ostm.get_ofstream() << ostm.get_delimiter();
@@ -436,7 +437,7 @@ inline csv::ofstream& operator << (csv::ofstream& ostm, const char& val)
 	return ostm;
 }
 template<>
-csv::ofstream& operator << (csv::ofstream& ostm, const char* val)
+inline csv::ofstream& operator << (csv::ofstream& ostm, const char* val)
 {
 	const std::string temp = val;
 
@@ -714,7 +715,7 @@ csv::ostringstream& operator << (csv::ostringstream& ostm, const T* val)
 	return ostm;
 }
 template<>
-csv::ostringstream& operator << (csv::ostringstream& ostm, const std::string& val)
+inline csv::ostringstream& operator << (csv::ostringstream& ostm, const std::string& val)
 {
 	if (!ostm.get_after_newline())
 		ostm.get_ostringstream() << ostm.get_delimiter();
@@ -748,7 +749,7 @@ inline csv::ostringstream& operator << (csv::ostringstream& ostm, const char& va
 	return ostm;
 }
 template<>
-csv::ostringstream& operator << (csv::ostringstream& ostm, const char* val)
+inline csv::ostringstream& operator << (csv::ostringstream& ostm, const char* val)
 {
 	const std::string temp = val;
 
