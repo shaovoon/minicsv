@@ -13,21 +13,13 @@ struct Product
 template<>
 inline csv::istringstream& operator >> (csv::istringstream& istm, Product& val)
 {
-	istm >> val.name;
-	istm >> val.qty;
-	istm >> val.price;
-
-	return istm;
+	return istm >> val.name >> val.qty >> val.price;
 }
 
 template<>
 inline csv::ostringstream& operator << (csv::ostringstream& ostm, const Product& val)
 {
-	ostm << val.name;
-	ostm << val.qty;
-	ostm << val.price;
-
-	return ostm;
+	return ostm << val.name << val.qty << val.price;
 }
 
 
