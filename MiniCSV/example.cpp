@@ -29,11 +29,12 @@ int main()
 	{
 		csv::ofstream os("products.txt");
 		os.set_delimiter(',', "$$");
+		os.enable_surround_quote_on_str(true, '\"');
 		if (os.is_open())
 		{
 			Product product("Shampoo", 200, 15.0f);
 			os << product.name << product.qty << product.price << NEWLINE;
-			Product product2("Towel, Soap, Shower Foam", 300, 6.0f);
+			Product product2("Towel, Soap, \"Shower Foam\"", 300, 6.0f);
 			os << product2.name << product2.qty << product2.price << NEWLINE;
 		}
 		os.flush();
@@ -41,6 +42,8 @@ int main()
 
 		csv::ifstream is("products.txt");
 		is.set_delimiter(',', "$$");
+		is.enable_trim_quote_on_str(true, '\"');
+
 		if (is.is_open())
 		{
 			Product product;
@@ -52,7 +55,7 @@ int main()
 			}
 		}
 	}
-
+	
 	// test string streams using overloaded stream operators for Product
 	{
 		csv::ostringstream os;
@@ -72,6 +75,7 @@ int main()
 			std::cout << prod.name << "|" << prod.qty << "|" << prod.price << std::endl;
 		}
 	}
+	
 	return 0;
 }
 

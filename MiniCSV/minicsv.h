@@ -20,6 +20,7 @@
 // version 1.7.5 : Add terminate_on_blank_line variable. Set to false if your file format has blank lines in between.
 // version 1.7.6 : Ignore delimiters within quotes during reading when enable_trim_quote_on_str is true;
 // version 1.7.7 : Fixed multiple symbol linkage errors
+// version 1.7.8 : Add quote escape/unescape. Default is "&quot;"
 
 //#define USE_BOOST_LEXICAL_CAST
 
@@ -93,7 +94,15 @@ namespace csv
 	class ifstream
 	{
 	public:
-		ifstream() : str(""), pos(0), delimiter(","), unescape_str("##"), trim_quote_on_str(false), trim_quote('\"'), terminate_on_blank_line(true)
+		ifstream() 
+			: str("")
+			, pos(0)
+			, delimiter(",")
+			, unescape_str("##")
+			, trim_quote_on_str(false)
+			, trim_quote('\"')
+			, terminate_on_blank_line(true)
+			, quote_unescape("&quot;")
 		{
 		}
 		ifstream(const char * file)
@@ -123,10 +132,11 @@ namespace csv
 		{
 			return istm.is_open();
 		}
-		void enable_trim_quote_on_str(bool enable, char quote)
+		void enable_trim_quote_on_str(bool enable, char quote, const std::string& unescape="&quot;")
 		{
 			trim_quote_on_str = enable;
 			trim_quote = quote;
+			quote_unescape = unescape;
 		}
 		// eof is replaced by read_line
 		//bool eof() const
@@ -210,7 +220,14 @@ namespace csv
 		std::string unescape(std::string & src)
 		{
 			src = unescape_str.empty() ? src : replace(src, unescape_str, delimiter);
-			return trim_quote_on_str ? trim(src, std::string(1, trim_quote)) : src;
+		
+			if(trim_quote_on_str)
+			{
+				std::string s = trim(src, std::string(1, trim_quote));
+				return replace(s, quote_unescape, std::string(1, trim_quote));
+			}
+			
+			return src;
 		}
 		size_t num_of_delimiter() const
 		{
@@ -251,13 +268,20 @@ namespace csv
 		bool trim_quote_on_str;
 		char trim_quote;
 		bool terminate_on_blank_line;
+		std::string quote_unescape;
 	};
 
 	class ofstream
 	{
 	public:
 
-		ofstream() : after_newline(true), delimiter(","), escape_str("##"), surround_quote_on_str(false), surround_quote('\"')
+		ofstream() 
+			: after_newline(true)
+			, delimiter(",")
+			, escape_str("##")
+			, surround_quote_on_str(false)
+			, surround_quote('\"')
+			, quote_escape("&quot;")
 		{
 		}
 		ofstream(const char * file)
@@ -276,6 +300,7 @@ namespace csv
 			escape_str = "##";
 			surround_quote_on_str = false;
 			surround_quote = '\"';
+			quote_escape = "&quot;";
 		}
 		void flush()
 		{
@@ -289,10 +314,11 @@ namespace csv
 		{
 			return ostm.is_open();
 		}
-		void enable_surround_quote_on_str(bool enable, char quote)
+		void enable_surround_quote_on_str(bool enable, char quote,const std::string& escape="&quot;")
 		{
 			surround_quote_on_str = enable;
 			surround_quote = quote;
+			quote_escape = escape;
 		}
 		void set_delimiter(char delimiter_, std::string const & escape_str_)
 		{
@@ -328,6 +354,10 @@ namespace csv
 			src = ((escape_str.empty()) ? src : replace(src, delimiter, escape_str));
 			if (surround_quote_on_str)
 			{
+				if(!quote_escape.empty())
+				{
+					src = replace(src, std::string(1, surround_quote), quote_escape);
+				}
 				ostm << surround_quote << src << surround_quote;
 			}
 			else
@@ -342,6 +372,7 @@ namespace csv
 		std::string escape_str;
 		bool surround_quote_on_str;
 		char surround_quote;
+		std::string quote_escape;
 	};
 
 
@@ -460,13 +491,15 @@ public:
 		, trim_quote_on_str(false)
 		, trim_quote('\"')
 		, terminate_on_blank_line(true)
+		, quote_unescape("&quot;")
 	{
 		istm.str(text);
 	}
-	void enable_trim_quote_on_str(bool enable, char quote)
+	void enable_trim_quote_on_str(bool enable, char quote, const std::string& unescape="&quot;")
 	{
 		trim_quote_on_str = enable;
 		trim_quote = quote;
+		quote_unescape = unescape;
 	}
 	void set_delimiter(char delimiter_, std::string const & unescape_str_)
 	{
@@ -546,7 +579,12 @@ public:
 	std::string unescape(std::string & src)
 	{
 		src = unescape_str.empty() ? src : replace(src, unescape_str, delimiter);
-		return trim_quote_on_str ? trim(src, std::string(1, trim_quote)) : src;
+		if(trim_quote_on_str)
+		{
+			std::string s = trim(src, std::string(1, trim_quote));
+			return replace(s, quote_unescape, std::string(1, trim_quote));
+		}
+		return src;
 	}
 
 	size_t num_of_delimiter() const
@@ -588,19 +626,27 @@ private:
 	bool trim_quote_on_str;
 	char trim_quote;
 	bool terminate_on_blank_line;
+	std::string quote_unescape;
 };
 
 class ostringstream
 {
 public:
 
-	ostringstream() : after_newline(true), delimiter(","), escape_str("##"), surround_quote_on_str(false), surround_quote('\"')
+	ostringstream() 
+		: after_newline(true)
+		, delimiter(",")
+		, escape_str("##")
+		, surround_quote_on_str(false)
+		, surround_quote('\"')
+		, quote_escape("&quot;")
 	{
 	}
-	void enable_surround_quote_on_str(bool enable, char quote)
+	void enable_surround_quote_on_str(bool enable, char quote, const std::string& escape="&quot;")
 	{
 		surround_quote_on_str = enable;
 		surround_quote = quote;
+		quote_escape = escape;
 	}
 	void set_delimiter(char delimiter_, std::string const & escape_str_)
 	{
@@ -640,6 +686,10 @@ public:
 		src = ((escape_str.empty()) ? src : replace(src, delimiter, escape_str));
 		if (surround_quote_on_str)
 		{
+			if(!quote_escape.empty())
+			{
+				src = replace(src, std::string(1, surround_quote), quote_escape);
+			}
 			ostm << surround_quote << src << surround_quote;
 		}
 		else
@@ -655,6 +705,7 @@ private:
 	std::string escape_str;
 	bool surround_quote_on_str;
 	char surround_quote;
+	std::string quote_escape;
 };
 
 
