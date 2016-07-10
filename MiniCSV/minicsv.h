@@ -115,7 +115,7 @@ namespace csv
 		void open(const char * file)
 		{
 			init();
-			istm.open(file, std::ios_base::in | std::ios_base::binary);
+			istm.open(file, std::ios_base::in);
 			read_bom();
 		}
 		void read_bom()
