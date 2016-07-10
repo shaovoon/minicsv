@@ -39,7 +39,7 @@ int main()
 		}
 		os.flush();
 		os.close();
-
+		
 		csv::ifstream is("products.txt");
 		is.set_delimiter(',', "$$");
 		is.enable_trim_quote_on_str(true, '\"');

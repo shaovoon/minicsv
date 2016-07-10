@@ -1,6 +1,6 @@
 // The MIT License (MIT)
-// Minimalistic CSV Streams 1.6
-// Copyright (C) 2014, by Wong Shao Voon (shaovoon@yahoo.com)
+// Minimalistic CSV Streams 1.7.9
+// Copyright (C) 2014 - 2016, by Wong Shao Voon (shaovoon@yahoo.com)
 //
 // http://opensource.org/licenses/MIT
 //
@@ -21,6 +21,7 @@
 // version 1.7.6 : Ignore delimiters within quotes during reading when enable_trim_quote_on_str is true;
 // version 1.7.7 : Fixed multiple symbol linkage errors
 // version 1.7.8 : Add quote escape/unescape. Default is "&quot;"
+// version 1.7.9 : Reading UTF-8 BOM
 
 //#define USE_BOOST_LEXICAL_CAST
 
@@ -103,6 +104,8 @@ namespace csv
 			, trim_quote('\"')
 			, terminate_on_blank_line(true)
 			, quote_unescape("&quot;")
+			, has_bom(false)
+			, first_line_read(false)
 		{
 		}
 		ifstream(const char * file)
@@ -112,7 +115,19 @@ namespace csv
 		void open(const char * file)
 		{
 			init();
-			istm.open(file, std::ios_base::in);
+			istm.open(file, std::ios_base::in | std::ios_base::binary);
+			read_bom();
+		}
+		void read_bom()
+		{
+			char tt[3] = { 0, 0, 0 };
+
+			istm.read(tt, sizeof(tt));
+
+			if (tt[0] == (char) 0xEF || tt[1] == (char) 0xBB || tt[2] == (char) 0xBF) // not the correct BOM, so reset the pos to beginning (file might not have BOM)
+				has_bom = true;
+
+			istm.seekg(0, istm.beg);
 		}
 		void init()
 		{
@@ -123,6 +138,8 @@ namespace csv
 			trim_quote_on_str = false;
 			trim_quote = '\"';
 			terminate_on_blank_line = true;
+			has_bom = false;
+			first_line_read = false;
 		}
 		void close()
 		{
@@ -159,6 +176,11 @@ namespace csv
 			{
 				std::getline(istm, str);
 				pos = 0;
+
+				if (first_line_read == false)
+				{
+					first_line_read = true;
+				}
 			}
 		}
 		bool read_line()
@@ -168,6 +190,15 @@ namespace csv
 			{
 				std::getline(istm, this->str);
 				pos = 0;
+
+				if (first_line_read == false)
+				{
+					first_line_read = true;
+					if (has_bom)
+					{
+						this->str = this->str.substr(3);
+					}
+				}
 
 				if (this->str.empty())
 				{
@@ -269,6 +300,8 @@ namespace csv
 		char trim_quote;
 		bool terminate_on_blank_line;
 		std::string quote_unescape;
+		bool has_bom;
+		bool first_line_read;
 	};
 
 	class ofstream
