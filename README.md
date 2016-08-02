@@ -77,13 +77,13 @@ Here is on how to overload the operator for your custom type.
 template<>
 inline csv::istringstream& operator >> (csv::istringstream& istm, Product& val)
 {
-	return istm >> val.name >> val.qty >> val.price;
+    return istm >> val.name >> val.qty >> val.price;
 }
 
 template<>
 inline csv::ostringstream& operator << (csv::ostringstream& ostm, const Product& val)
 {
-	return ostm << val.name << val.qty << val.price;
+    return ostm << val.name << val.qty << val.price;
 }
 
 int main()
@@ -108,6 +108,23 @@ int main()
         }
     }
     return 0;
+}
+```
+
+Version 1.7.10 added separator class for the stream, so that no need to call set_delimiter() repeatedly if delimiter keep changing
+
+```cpp
+csv::istringstream is("vt:33,44,66");
+is.set_delimiter(',', "$$");
+csv::sep colon(':', "<colon>");
+csv::sep comma(',', "<comma>");
+while (is.read_line())
+{
+    std::string type;
+    int r = 0, b = 0, g = 0;
+    is >> colon >> type >> comma >> r >> b >> g;
+    // display the read items
+    std::cout << type << "|" << r << "|" << b << "|" << g << std::endl;
 }
 ```
 

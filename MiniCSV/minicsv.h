@@ -22,6 +22,7 @@
 // version 1.7.7 : Fixed multiple symbol linkage errors
 // version 1.7.8 : Add quote escape/unescape. Default is "&quot;"
 // version 1.7.9 : Reading UTF-8 BOM
+// version 1.7.10 : separator class for the stream, so that no need to call set_delimiter repeatedly if delimiter keep changing
 
 //#define USE_BOOST_LEXICAL_CAST
 
@@ -91,6 +92,18 @@ namespace csv
 	{
 		return trim_left(trim_right(str, trimChars), trimChars);
 	}
+
+	class sep // separator class for the stream, so that no need to call set_delimiter
+	{
+	public:
+		sep(const char delimiter_, const std::string& escape_) : delimiter(delimiter_), escape(escape_) {}
+
+		const char get_delimiter() const { return delimiter; }
+		const std::string& get_escape() const { return escape; }
+	private:
+		const char delimiter;
+		const std::string escape;
+	};
 
 	class ifstream
 	{
@@ -433,6 +446,14 @@ inline csv::ifstream& operator >> (csv::ifstream& istm, std::string& val)
 	return istm;
 }
 
+template<>
+inline csv::ifstream& operator >> (csv::ifstream& istm, csv::sep& val)
+{
+	istm.set_delimiter(val.get_delimiter(), val.get_escape());
+
+	return istm;
+}
+
 template<typename T>
 csv::ofstream& operator << (csv::ofstream& ostm, const T& val)
 {
@@ -480,6 +501,15 @@ inline csv::ofstream& operator << (csv::ofstream& ostm, const std::string& val)
 
 	return ostm;
 }
+
+template<>
+inline csv::ofstream& operator << (csv::ofstream& ostm, const csv::sep& val)
+{
+	ostm.set_delimiter(val.get_delimiter(), val.get_escape());
+
+	return ostm;
+}
+
 template<>
 inline csv::ofstream& operator << (csv::ofstream& ostm, const char& val)
 {
@@ -766,6 +796,14 @@ inline csv::istringstream& operator >> (csv::istringstream& istm, std::string& v
 	return istm;
 }
 
+template<>
+inline csv::istringstream& operator >> (csv::istringstream& istm, csv::sep& val)
+{
+	istm.set_delimiter(val.get_delimiter(), val.get_escape());
+
+	return istm;
+}
+
 template<typename T>
 csv::ostringstream& operator << (csv::ostringstream& ostm, const T& val)
 {
@@ -808,6 +846,13 @@ inline csv::ostringstream& operator << (csv::ostringstream& ostm, const std::str
 	ostm.escape_str_and_output(temp);
 
 	ostm.set_after_newline(false);
+
+	return ostm;
+}
+template<>
+inline csv::ostringstream& operator << (csv::ostringstream& ostm, const csv::sep& val)
+{
+	ostm.set_delimiter(val.get_delimiter(), val.get_escape());
 
 	return ostm;
 }

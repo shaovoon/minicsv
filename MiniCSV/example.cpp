@@ -75,7 +75,22 @@ int main()
 			std::cout << prod.name << "|" << prod.qty << "|" << prod.price << std::endl;
 		}
 	}
-	
+
+	{
+		csv::istringstream is("vt:33,44,66");
+		is.set_delimiter(',', "$$");
+		csv::sep colon(':', "<colon>");
+		csv::sep comma(',', "<comma>");
+		while (is.read_line())
+		{
+			std::string type;
+			int r = 0, b = 0, g = 0;
+			is >> colon >> type >> comma >> r >> b >> g;
+			// display the read items
+			std::cout << type << "|" << r << "|" << b << "|" << g << std::endl;
+		}
+	}
+
 	return 0;
 }
 
