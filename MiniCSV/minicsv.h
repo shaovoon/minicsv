@@ -23,6 +23,7 @@
 // version 1.7.8 : Add quote escape/unescape. Default is "&quot;"
 // version 1.7.9 : Reading UTF-8 BOM
 // version 1.7.10 : separator class for the stream, so that no need to call set_delimiter repeatedly if delimiter keep changing
+// version 1.7.11 : Fixed num_of_delimiters function: do not count delimiter within quotes
 
 //#define USE_BOOST_LEXICAL_CAST
 
@@ -32,6 +33,7 @@
 #include <string>
 #include <sstream>
 #include <fstream>
+#include <algorithm>
 
 #ifdef USE_BOOST_LEXICAL_CAST
 #	include <boost/lexical_cast.hpp>
@@ -275,16 +277,30 @@ namespace csv
 		}
 		size_t num_of_delimiter() const
 		{
-			if (delimiter.size() == 0)
-				return 0;
+            if (delimiter.size() == 0)
+                return 0;
 
-			size_t cnt = 0;
-			for (size_t i = 0; i < str.size(); ++i)
-			{
-				if (str[i] == delimiter[0])
-					++cnt;
-			}
-			return cnt;
+            size_t cnt = 0;
+            if(trim_quote_on_str)
+            {
+                bool inside_quote = false;
+                for (size_t i = 0; i < str.size(); ++i)
+                {
+                    if(str[i] == trim_quote)
+                        inside_quote = !inside_quote;
+
+                    if(!inside_quote)
+                    {
+                        if (str[i] == delimiter[0])
+                            ++cnt;
+                    }
+                }
+            }
+            else
+            {
+                cnt = std::count(str.begin(), str.end(), delimiter[0]);
+            }
+            return cnt;
 		}
 		std::string get_rest_of_line() const
 		{
@@ -656,11 +672,25 @@ public:
 			return 0;
 
 		size_t cnt = 0;
-		for (size_t i = 0; i < str.size(); ++i)
-		{
-			if (str[i] == delimiter[0])
-				++cnt;
-		}
+        if(trim_quote_on_str)
+        {
+            bool inside_quote = false;
+            for (size_t i = 0; i < str.size(); ++i)
+            {
+                if(str[i] == trim_quote)
+                    inside_quote = !inside_quote;
+
+                if(!inside_quote)
+                {
+                    if (str[i] == delimiter[0])
+                        ++cnt;
+                }
+            }
+        }
+        else
+        {
+            cnt = std::count(str.begin(), str.end(), delimiter[0]);
+        }
 		return cnt;
 	}
 	std::string get_rest_of_line() const

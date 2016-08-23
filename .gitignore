@@ -9,6 +9,12 @@
 *.o
 *.a
 *.sdf
+*.exe
+*.pdb
+*.ipdb
+*.iobj
+*.ilk
+*.db
 
 */[dD]ebug/
 */[rR]elease/
