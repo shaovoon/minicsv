@@ -121,6 +121,8 @@ namespace csv
 			, quote_unescape("&quot;")
 			, has_bom(false)
 			, first_line_read(false)
+			, filename("")
+			, line_num(0)
 		{
 		}
 		ifstream(const char * file)
@@ -130,6 +132,7 @@ namespace csv
 		void open(const char * file)
 		{
 			init();
+			filename = file;
 			istm.open(file, std::ios_base::in);
 			read_bom();
 		}
@@ -155,6 +158,8 @@ namespace csv
 			terminate_on_blank_line = true;
 			has_bom = false;
 			first_line_read = false;
+			filename = "";
+			line_num = 0;
 		}
 		void close()
 		{
@@ -223,6 +228,7 @@ namespace csv
 						continue;
 				}
 
+				++line_num;
 				return true;
 			}
 			return false;
@@ -318,6 +324,12 @@ namespace csv
 		{
 			return terminate_on_blank_line;
 		}
+		std::string error_line(const std::string& extra_info)
+		{
+			std::ostringstream is;
+			is << "csv::ifstream Conversion error at line no.:" << line_num << ", filename:" << filename << ", extra_info:" << extra_info;
+			return is.str();
+		}
 
 	private:
 		std::ifstream istm;
@@ -331,6 +343,8 @@ namespace csv
 		std::string quote_unescape;
 		bool has_bom;
 		bool first_line_read;
+		std::string filename;
+		size_t line_num;
 	};
 
 	class ofstream
@@ -444,12 +458,23 @@ template<typename T>
 csv::ifstream& operator >> (csv::ifstream& istm, T& val)
 {
 	std::string str = istm.get_delimited_str();
-	
+
 #ifdef USE_BOOST_LEXICAL_CAST
-	val = boost::lexical_cast<T>(str);
+	try 
+	{
+		val = boost::lexical_cast<T>(str);
+	}
+	catch (boost::bad_lexical_cast& e)
+	{
+		throw std::runtime_error(istm.error_line(e.what()).c_str());
+	}
 #else
 	std::istringstream is(str);
 	is >> val;
+	if (!(bool)is)
+	{
+		throw std::runtime_error(istm.error_line("").c_str());
+	}
 #endif
 
 	return istm;
@@ -571,6 +596,7 @@ public:
 		, trim_quote('\"')
 		, terminate_on_blank_line(true)
 		, quote_unescape("&quot;")
+		, line_num(0)
 	{
 		istm.str(text);
 	}
@@ -614,9 +640,9 @@ public:
 					continue;
 			}
 
+			++line_num;
 			return true;
 		}
-		return false;
 		return false;
 	}
 	std::string get_delimited_str()
@@ -709,6 +735,12 @@ public:
 	{
 		return terminate_on_blank_line;
 	}
+	std::string error_line(const std::string& extra_info)
+	{
+		std::ostringstream is;
+		is << "csv::istringstream conversion error at line no.:" << line_num << ", extra_info:" << extra_info;
+		return is.str();
+	}
 
 private:
 	std::istringstream istm;
@@ -720,6 +752,7 @@ private:
 	char trim_quote;
 	bool terminate_on_blank_line;
 	std::string quote_unescape;
+	size_t line_num;
 };
 
 class ostringstream
@@ -810,10 +843,21 @@ csv::istringstream& operator >> (csv::istringstream& istm, T& val)
 	std::string str = istm.get_delimited_str();
 
 #ifdef USE_BOOST_LEXICAL_CAST
-	val = boost::lexical_cast<T>(str);
+	try
+	{
+		val = boost::lexical_cast<T>(str);
+	}
+	catch (boost::bad_lexical_cast& e)
+	{
+		throw std::runtime_error(istm.error_line(e.what()).c_str());
+	}
 #else
 	std::istringstream is(str);
 	is >> val;
+	if (!(bool)is)
+	{
+		throw std::runtime_error(istm.error_line("").c_str());
+	}
 #endif
 
 	return istm;

@@ -49,7 +49,14 @@ int main()
 			Product product;
 			while (is.read_line())
 			{
-				is >> product.name >> product.qty >> product.price;
+				try
+				{
+					is >> product.name >> product.qty >> product.price;
+				}
+				catch (std::runtime_error& e)
+				{
+					std::cerr << e.what() << std::endl;
+				}
 				// display the read items
 				std::cout << product.name << "," << product.qty << "," << product.price << std::endl;
 			}
@@ -70,7 +77,15 @@ int main()
 		Product prod;
 		while (is.read_line())
 		{
-			is >> prod;
+			try
+			{
+				is >> prod;
+			}
+			catch (std::runtime_error& e)
+			{
+				std::cerr << e.what() << std::endl;
+			}
+
 			// display the read items
 			std::cout << prod.name << "|" << prod.qty << "|" << prod.price << std::endl;
 		}
@@ -85,7 +100,15 @@ int main()
 		{
 			std::string type;
 			int r = 0, b = 0, g = 0;
-			is >> colon >> type >> comma >> r >> b >> g;
+			try
+			{
+				is >> colon >> type >> comma >> r >> b >> g;
+			}
+			catch (std::runtime_error& e)
+			{
+				std::cerr << e.what() << std::endl;
+			}
+
 			// display the read items
 			std::cout << type << "|" << r << "|" << b << "|" << g << std::endl;
 		}
