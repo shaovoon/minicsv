@@ -24,6 +24,7 @@
 // version 1.7.9 : Reading UTF-8 BOM
 // version 1.7.10 : separator class for the stream, so that no need to call set_delimiter repeatedly if delimiter keep changing
 // version 1.7.11 : Fixed num_of_delimiters function: do not count delimiter within quotes
+// version 1.8.0  : Add meaningful error message for data conversion during reading
 
 //#define USE_BOOST_LEXICAL_CAST
 
@@ -34,6 +35,7 @@
 #include <sstream>
 #include <fstream>
 #include <algorithm>
+#include <stdexcept>
 
 #ifdef USE_BOOST_LEXICAL_CAST
 #	include <boost/lexical_cast.hpp>
@@ -123,6 +125,7 @@ namespace csv
 			, first_line_read(false)
 			, filename("")
 			, line_num(0)
+			, token_num(0)
 		{
 		}
 		ifstream(const char * file)
@@ -160,6 +163,7 @@ namespace csv
 			first_line_read = false;
 			filename = "";
 			line_num = 0;
+			token_num = 0;
 		}
 		void close()
 		{
@@ -229,6 +233,7 @@ namespace csv
 				}
 
 				++line_num;
+				token_num = 0;
 				return true;
 			}
 			return false;
@@ -244,6 +249,7 @@ namespace csv
 				{
 					this->str = "";
 
+					++token_num;
 					return unescape(str);
 				}
 
@@ -267,6 +273,7 @@ namespace csv
 			}
 			while(true);
 
+			++token_num;
 			return unescape(str);
 		}
 		std::string unescape(std::string & src)
@@ -324,10 +331,10 @@ namespace csv
 		{
 			return terminate_on_blank_line;
 		}
-		std::string error_line(const std::string& extra_info)
+		std::string error_line(const std::string& token)
 		{
 			std::ostringstream is;
-			is << "csv::ifstream Conversion error at line no.:" << line_num << ", filename:" << filename << ", extra_info:" << extra_info;
+			is << "csv::ifstream Conversion error at line no.:" << line_num << ", filename:" << filename << ", token position:" << token_num << ", token:" << token;
 			return is.str();
 		}
 
@@ -345,6 +352,7 @@ namespace csv
 		bool first_line_read;
 		std::string filename;
 		size_t line_num;
+		size_t token_num;
 	};
 
 	class ofstream
@@ -466,14 +474,14 @@ csv::ifstream& operator >> (csv::ifstream& istm, T& val)
 	}
 	catch (boost::bad_lexical_cast& e)
 	{
-		throw std::runtime_error(istm.error_line(e.what()).c_str());
+		throw std::runtime_error(istm.error_line(str).c_str());
 	}
 #else
 	std::istringstream is(str);
 	is >> val;
 	if (!(bool)is)
 	{
-		throw std::runtime_error(istm.error_line("").c_str());
+		throw std::runtime_error(istm.error_line(str).c_str());
 	}
 #endif
 
@@ -597,6 +605,7 @@ public:
 		, terminate_on_blank_line(true)
 		, quote_unescape("&quot;")
 		, line_num(0)
+		, token_num(0)
 	{
 		istm.str(text);
 	}
@@ -641,6 +650,7 @@ public:
 			}
 
 			++line_num;
+			token_num = 0;
 			return true;
 		}
 		return false;
@@ -656,6 +666,7 @@ public:
 			{
 				this->str = "";
 
+				++token_num;
 				return unescape(str);
 			}
 
@@ -678,6 +689,7 @@ public:
 			str += ch;
 		} while (true);
 
+		++token_num;
 		return unescape(str);
 	}
 
@@ -735,10 +747,10 @@ public:
 	{
 		return terminate_on_blank_line;
 	}
-	std::string error_line(const std::string& extra_info)
+	std::string error_line(const std::string& token)
 	{
 		std::ostringstream is;
-		is << "csv::istringstream conversion error at line no.:" << line_num << ", extra_info:" << extra_info;
+		is << "csv::istringstream conversion error at line no.:" << line_num << ", token position:" << token_num << ", token:" << token;
 		return is.str();
 	}
 
@@ -753,6 +765,7 @@ private:
 	bool terminate_on_blank_line;
 	std::string quote_unescape;
 	size_t line_num;
+	size_t token_num;
 };
 
 class ostringstream
@@ -849,14 +862,14 @@ csv::istringstream& operator >> (csv::istringstream& istm, T& val)
 	}
 	catch (boost::bad_lexical_cast& e)
 	{
-		throw std::runtime_error(istm.error_line(e.what()).c_str());
+		throw std::runtime_error(istm.error_line(str).c_str());
 	}
 #else
 	std::istringstream is(str);
 	is >> val;
 	if (!(bool)is)
 	{
-		throw std::runtime_error(istm.error_line("").c_str());
+		throw std::runtime_error(istm.error_line(str).c_str());
 	}
 #endif
 

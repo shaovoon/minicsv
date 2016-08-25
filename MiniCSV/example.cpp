@@ -92,7 +92,7 @@ int main()
 	}
 
 	{
-		csv::istringstream is("vt:33,44,66");
+		csv::istringstream is("vt:22,44,66");
 		is.set_delimiter(',', "$$");
 		csv::sep colon(':', "<colon>");
 		csv::sep comma(',', "<comma>");
