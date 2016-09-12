@@ -11,13 +11,13 @@ struct Product
 };
 
 template<>
-inline csv::istringstream& operator >> (csv::istringstream& istm, Product& val)
+inline mini::csv::istringstream& operator >> (mini::csv::istringstream& istm, Product& val)
 {
 	return istm >> val.name >> val.qty >> val.price;
 }
 
 template<>
-inline csv::ostringstream& operator << (csv::ostringstream& ostm, const Product& val)
+inline mini::csv::ostringstream& operator << (mini::csv::ostringstream& ostm, const Product& val)
 {
 	return ostm << val.name << val.qty << val.price;
 }
@@ -27,7 +27,7 @@ int main()
 {
 	// test file streams
 	{
-		csv::ofstream os("products.txt");
+		mini::csv::ofstream os("products.txt");
 		os.set_delimiter(',', "$$");
 		os.enable_surround_quote_on_str(true, '\"');
 		if (os.is_open())
@@ -40,7 +40,7 @@ int main()
 		os.flush();
 		os.close();
 		
-		csv::ifstream is("products.txt");
+		mini::csv::ifstream is("products.txt");
 		is.set_delimiter(',', "$$");
 		is.enable_trim_quote_on_str(true, '\"');
 
@@ -65,14 +65,14 @@ int main()
 	
 	// test string streams using overloaded stream operators for Product
 	{
-		csv::ostringstream os;
+		mini::csv::ostringstream os;
 		os.set_delimiter(',', "$$");
 		Product product("Shampoo", 200, 15.0f);
 		os << product << NEWLINE;
 		Product product2("Towel, Soap, Shower Foam", 300, 6.0f);
 		os << product2 << NEWLINE;
 
-		csv::istringstream is(os.get_text().c_str());
+		mini::csv::istringstream is(os.get_text().c_str());
 		is.set_delimiter(',', "$$");
 		Product prod;
 		while (is.read_line())
@@ -92,10 +92,10 @@ int main()
 	}
 
 	{
-		csv::istringstream is("vt:22,44,66");
+		mini::csv::istringstream is("vt:22,44,66");
 		is.set_delimiter(',', "$$");
-		csv::sep colon(':', "<colon>");
-		csv::sep comma(',', "<comma>");
+		mini::csv::sep colon(':', "<colon>");
+		mini::csv::sep comma(',', "<comma>");
 		while (is.read_line())
 		{
 			std::string type;
