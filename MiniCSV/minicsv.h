@@ -921,7 +921,7 @@ mini::csv::ostringstream& operator << (mini::csv::ostringstream& ostm, const T* 
 
 	std::ostringstream os_temp;
 
-	os_temp << val;
+	os_temp << *val;
 
 	ostm.escape_and_output(os_temp.str());
 
