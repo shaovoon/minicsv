@@ -25,6 +25,7 @@
 // version 1.7.10 : separator class for the stream, so that no need to call set_delimiter repeatedly if delimiter keep changing
 // version 1.7.11 : Fixed num_of_delimiters function: do not count delimiter within quotes
 // version 1.8.0  : Add meaningful error message for data conversion during reading
+// version 1.8.1  : Put under the mini namespace
 
 //#define USE_BOOST_LEXICAL_CAST
 
