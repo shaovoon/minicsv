@@ -1,4 +1,4 @@
-# minicsv
+# C++: Minimalistic CSV Streams
 
 Bare minimal CSV stream based on C++ file streams where the stream operator can be overloaded for your custom type.
 
