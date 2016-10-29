@@ -334,10 +334,13 @@ namespace mini
 			{
 				return terminate_on_blank_line;
 			}
-			std::string error_line(const std::string& token)
+			std::string error_line(const std::string& token, const std::string& function_site)
 			{
 				std::ostringstream is;
-				is << "csv::ifstream Conversion error at line no.:" << line_num << ", filename:" << filename << ", token position:" << token_num << ", token:" << token;
+				is << "csv::ifstream Conversion error at line no.:" << line_num 
+				   << ", filename:" << filename << ", token position:" << token_num 
+				   << ", token:" << token << ", function:" << function_site;
+
 				return is.str();
 			}
 
@@ -478,14 +481,26 @@ mini::csv::ifstream& operator >> (mini::csv::ifstream& istm, T& val)
 	}
 	catch (boost::bad_lexical_cast& e)
 	{
-		throw std::runtime_error(istm.error_line(str).c_str());
+#ifdef _WIN32
+		const std::string function_site = __FUNCSIG__;
+#else
+		const std::string function_site = __PRETTY_FUNCTION__;
+#endif
+
+		throw std::runtime_error(istm.error_line(str, function_site).c_str());
 	}
 #else
 	std::istringstream is(str);
 	is >> val;
 	if (!(bool)is)
 	{
-		throw std::runtime_error(istm.error_line(str).c_str());
+#ifdef _WIN32
+		const std::string function_site = __FUNCSIG__;
+#else
+		const std::string function_site = __PRETTY_FUNCTION__;
+#endif
+
+		throw std::runtime_error(istm.error_line(str, function_site).c_str());
 	}
 #endif
 
@@ -753,10 +768,12 @@ namespace mini
 			{
 				return terminate_on_blank_line;
 			}
-			std::string error_line(const std::string& token)
+			std::string error_line(const std::string& token, const std::string& function_site)
 			{
 				std::ostringstream is;
-				is << "csv::istringstream conversion error at line no.:" << line_num << ", token position:" << token_num << ", token:" << token;
+				is << "csv::istringstream conversion error at line no.:" << line_num 
+				   << ", token position:" << token_num << ", token:" << token
+				   << ", function:" << function_site;
 				return is.str();
 			}
 
@@ -869,14 +886,26 @@ mini::csv::istringstream& operator >> (mini::csv::istringstream& istm, T& val)
 	}
 	catch (boost::bad_lexical_cast& e)
 	{
-		throw std::runtime_error(istm.error_line(str).c_str());
+#ifdef _WIN32
+		const std::string function_site = __FUNCSIG__;
+#else
+		const std::string function_site = __PRETTY_FUNCTION__;
+#endif
+
+		throw std::runtime_error(istm.error_line(str, function_site).c_str());
 	}
 #else
 	std::istringstream is(str);
 	is >> val;
 	if (!(bool)is)
 	{
-		throw std::runtime_error(istm.error_line(str).c_str());
+#ifdef _WIN32
+		const std::string function_site = __FUNCSIG__;
+#else
+		const std::string function_site = __PRETTY_FUNCTION__;
+#endif
+
+		throw std::runtime_error(istm.error_line(str, function_site).c_str());
 	}
 #endif
 
