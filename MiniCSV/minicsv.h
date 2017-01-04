@@ -67,38 +67,28 @@ namespace mini
 			return src;
 		}
 
-		inline std::string trim_right(const std::string& str, const std::string& trimChars)
-		{
-			std::string result = "";
-			size_t endpos = str.find_last_not_of(trimChars);
-			if (std::string::npos != endpos)
-			{
-				result = str.substr(0, endpos + 1);
-			}
-			else
-				result = str;
-
-			return result;
-		}
-
-		inline std::string trim_left(const std::string& str, const std::string& trimChars)
-		{
-			std::string result = "";
-
-			size_t startpos = str.find_first_not_of(trimChars);
-			if (std::string::npos != startpos)
-			{
-				result = str.substr(startpos);
-			}
-			else
-				result = str;
-
-			return result;
-		}
-
 		inline std::string trim(const std::string& str, const std::string& trimChars)
 		{
-			return trim_left(trim_right(str, trimChars), trimChars);
+			std::string result = "";
+
+			if (str.empty())
+				return result;
+
+			size_t startpos = str.find_first_not_of(trimChars);
+			size_t endpos = str.find_last_not_of(trimChars);
+
+			if (std::string::npos == startpos&&std::string::npos == endpos)
+				return str;
+
+			startpos = (std::string::npos == startpos) ? 0 : startpos;
+			endpos = (std::string::npos == endpos) ? str.size() : endpos;
+
+			if (startpos <= endpos)
+			{
+				result = str.substr(startpos, endpos - startpos + 1);
+			}
+
+			return result;
 		}
 
 		class sep // separator class for the stream, so that no need to call set_delimiter
@@ -116,7 +106,7 @@ namespace mini
 		class ifstream
 		{
 		public:
-			ifstream()
+			ifstream(const std::string& file="")
 				: str("")
 				, pos(0)
 				, delimiter(",")
@@ -131,10 +121,16 @@ namespace mini
 				, line_num(0)
 				, token_num(0)
 			{
+				open(file);
 			}
 			ifstream(const char * file)
 			{
 				open(file);
+			}
+			void open(const std::string& file)
+			{
+				if (!file.empty())
+					open(file.c_str());
 			}
 			void open(const char * file)
 			{
@@ -365,7 +361,7 @@ namespace mini
 		{
 		public:
 
-			ofstream()
+			ofstream(const std::string& file = "")
 				: after_newline(true)
 				, delimiter(",")
 				, escape_str("##")
@@ -373,10 +369,16 @@ namespace mini
 				, surround_quote('\"')
 				, quote_escape("&quot;")
 			{
+				open(file);
 			}
 			ofstream(const char * file)
 			{
 				open(file);
+			}
+			void open(const std::string& file)
+			{
+				if (!file.empty())
+					open(file.c_str());
 			}
 			void open(const char * file)
 			{
