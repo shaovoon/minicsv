@@ -240,7 +240,7 @@ namespace mini
 			}
 			std::string get_delimited_str()
 			{
-				std::string str = "";
+				std::string local_str = "";
 				char ch = '\0';
 				bool within_quote = false;
 				do
@@ -250,7 +250,7 @@ namespace mini
 						this->str = "";
 
 						++token_num;
-						return unescape(str);
+						return unescape(local_str);
 					}
 
 					ch = this->str[pos];
@@ -269,11 +269,11 @@ namespace mini
 					if (ch == '\r' || ch == '\n')
 						break;
 
-					str += ch;
+					local_str += ch;
 				} while (true);
 
 				++token_num;
-				return unescape(str);
+				return unescape(local_str);
 			}
 			std::string unescape(std::string & src)
 			{
@@ -680,7 +680,7 @@ namespace mini
 			}
 			std::string get_delimited_str()
 			{
-				std::string str = "";
+				std::string local_str = "";
 				char ch = '\0';
 				bool within_quote = false;
 				do
@@ -690,7 +690,7 @@ namespace mini
 						this->str = "";
 
 						++token_num;
-						return unescape(str);
+						return unescape(local_str);
 					}
 
 					ch = this->str[pos];
@@ -709,11 +709,11 @@ namespace mini
 					if (ch == '\r' || ch == '\n')
 						break;
 
-					str += ch;
+					local_str += ch;
 				} while (true);
 
 				++token_num;
-				return unescape(str);
+				return unescape(local_str);
 			}
 
 			std::string unescape(std::string & src)
