@@ -1,5 +1,5 @@
 // The MIT License (MIT)
-// Minimalistic CSV Streams 1.7.9
+// Minimalistic CSV Streams 1.8.2
 // Copyright (C) 2014 - 2016, by Wong Shao Voon (shaovoon@yahoo.com)
 //
 // http://opensource.org/licenses/MIT
@@ -26,6 +26,7 @@
 // version 1.7.11 : Fixed num_of_delimiters function: do not count delimiter within quotes
 // version 1.8.0  : Add meaningful error message for data conversion during reading
 // version 1.8.1  : Put under the mini namespace
+// version 1.8.2  : Optimize input stream.
 
 //#define USE_BOOST_LEXICAL_CAST
 
@@ -113,6 +114,7 @@ namespace mini
 				, unescape_str("##")
 				, trim_quote_on_str(false)
 				, trim_quote('\"')
+				, trim_quote_str(1, trim_quote)
 				, terminate_on_blank_line(true)
 				, quote_unescape("&quot;")
 				, has_bom(false)
@@ -158,6 +160,7 @@ namespace mini
 				unescape_str = "##";
 				trim_quote_on_str = false;
 				trim_quote = '\"';
+				trim_quote_str = std::string(1, trim_quote);
 				terminate_on_blank_line = true;
 				has_bom = false;
 				first_line_read = false;
@@ -177,6 +180,7 @@ namespace mini
 			{
 				trim_quote_on_str = enable;
 				trim_quote = quote;
+				trim_quote_str = std::string(1, trim_quote);
 				quote_unescape = unescape;
 			}
 			// eof is replaced by read_line
@@ -238,9 +242,9 @@ namespace mini
 				}
 				return false;
 			}
-			std::string get_delimited_str()
+			const std::string& get_delimited_str()
 			{
-				std::string local_str = "";
+				token = "";
 				char ch = '\0';
 				bool within_quote = false;
 				do
@@ -250,7 +254,8 @@ namespace mini
 						this->str = "";
 
 						++token_num;
-						return unescape(local_str);
+						token = unescape(token);
+						return token;
 					}
 
 					ch = this->str[pos];
@@ -269,11 +274,12 @@ namespace mini
 					if (ch == '\r' || ch == '\n')
 						break;
 
-					local_str += ch;
+					token += ch;
 				} while (true);
 
 				++token_num;
-				return unescape(local_str);
+				token = unescape(token);
+				return token;
 			}
 			std::string unescape(std::string & src)
 			{
@@ -281,8 +287,15 @@ namespace mini
 
 				if (trim_quote_on_str)
 				{
-					std::string s = trim(src, std::string(1, trim_quote));
-					return replace(s, quote_unescape, std::string(1, trim_quote));
+					if (!src.empty() && (src[0] == trim_quote || src[src.size() - 1] == trim_quote))
+					{
+						src = trim(src, trim_quote_str);
+					}
+
+					if (std::string::npos != src.find(quote_unescape, 0))
+					{
+						src = replace(src, quote_unescape, trim_quote_str);
+					}
 				}
 
 				return src;
@@ -348,6 +361,7 @@ namespace mini
 			std::string unescape_str;
 			bool trim_quote_on_str;
 			char trim_quote;
+			std::string trim_quote_str;
 			bool terminate_on_blank_line;
 			std::string quote_unescape;
 			bool has_bom;
@@ -355,6 +369,7 @@ namespace mini
 			std::string filename;
 			size_t line_num;
 			size_t token_num;
+			std::string token;
 		};
 
 		class ofstream
@@ -474,7 +489,7 @@ namespace mini
 template<typename T>
 mini::csv::ifstream& operator >> (mini::csv::ifstream& istm, T& val)
 {
-	std::string str = istm.get_delimited_str();
+	const std::string& str = istm.get_delimited_str();
 
 #ifdef USE_BOOST_LEXICAL_CAST
 	try 
@@ -625,6 +640,7 @@ namespace mini
 				, unescape_str("##")
 				, trim_quote_on_str(false)
 				, trim_quote('\"')
+				, trim_quote_str(1, trim_quote)
 				, terminate_on_blank_line(true)
 				, quote_unescape("&quot;")
 				, line_num(0)
@@ -636,6 +652,7 @@ namespace mini
 			{
 				trim_quote_on_str = enable;
 				trim_quote = quote;
+				trim_quote_str = std::string(1, trim_quote);
 				quote_unescape = unescape;
 			}
 			void set_delimiter(char delimiter_, std::string const & unescape_str_)
@@ -678,9 +695,9 @@ namespace mini
 				}
 				return false;
 			}
-			std::string get_delimited_str()
+			const std::string& get_delimited_str()
 			{
-				std::string local_str = "";
+				token = "";
 				char ch = '\0';
 				bool within_quote = false;
 				do
@@ -690,7 +707,8 @@ namespace mini
 						this->str = "";
 
 						++token_num;
-						return unescape(local_str);
+						token = unescape(token);
+						return token;
 					}
 
 					ch = this->str[pos];
@@ -709,11 +727,12 @@ namespace mini
 					if (ch == '\r' || ch == '\n')
 						break;
 
-					local_str += ch;
+					token += ch;
 				} while (true);
 
 				++token_num;
-				return unescape(local_str);
+				token = unescape(token);
+				return token;
 			}
 
 			std::string unescape(std::string & src)
@@ -721,8 +740,15 @@ namespace mini
 				src = unescape_str.empty() ? src : replace(src, unescape_str, delimiter);
 				if (trim_quote_on_str)
 				{
-					std::string s = trim(src, std::string(1, trim_quote));
-					return replace(s, quote_unescape, std::string(1, trim_quote));
+					if (!src.empty() && (src[0] == trim_quote || src[src.size() - 1] == trim_quote))
+					{
+						src = trim(src, trim_quote_str);
+					}
+
+					if (std::string::npos != src.find(quote_unescape, 0))
+					{
+						src = replace(src, quote_unescape, trim_quote_str);
+					}
 				}
 				return src;
 			}
@@ -787,10 +813,12 @@ namespace mini
 			std::string unescape_str;
 			bool trim_quote_on_str;
 			char trim_quote;
+			std::string trim_quote_str;
 			bool terminate_on_blank_line;
 			std::string quote_unescape;
 			size_t line_num;
 			size_t token_num;
+			std::string token;
 		};
 
 		class ostringstream
@@ -879,7 +907,7 @@ namespace mini
 template<typename T>
 mini::csv::istringstream& operator >> (mini::csv::istringstream& istm, T& val)
 {
-	std::string str = istm.get_delimited_str();
+	const std::string& str = istm.get_delimited_str();
 
 #ifdef USE_BOOST_LEXICAL_CAST
 	try

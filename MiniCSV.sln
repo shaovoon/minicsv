@@ -1,20 +1,34 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.40629.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "minicsv", "MiniCSV\minicsv.vcxproj", "{D63286CD-48C0-4A6A-9030-B3D03AB50490}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Benchmark", "Benchmark\Benchmark.vcxproj", "{C5BC6CB2-581A-44EC-9DB0-52CC1ED9384B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
 		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{D63286CD-48C0-4A6A-9030-B3D03AB50490}.Debug|Win32.ActiveCfg = Debug|Win32
 		{D63286CD-48C0-4A6A-9030-B3D03AB50490}.Debug|Win32.Build.0 = Debug|Win32
+		{D63286CD-48C0-4A6A-9030-B3D03AB50490}.Debug|x64.ActiveCfg = Debug|Win32
 		{D63286CD-48C0-4A6A-9030-B3D03AB50490}.Release|Win32.ActiveCfg = Release|Win32
 		{D63286CD-48C0-4A6A-9030-B3D03AB50490}.Release|Win32.Build.0 = Release|Win32
+		{D63286CD-48C0-4A6A-9030-B3D03AB50490}.Release|x64.ActiveCfg = Release|Win32
+		{C5BC6CB2-581A-44EC-9DB0-52CC1ED9384B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C5BC6CB2-581A-44EC-9DB0-52CC1ED9384B}.Debug|Win32.Build.0 = Debug|Win32
+		{C5BC6CB2-581A-44EC-9DB0-52CC1ED9384B}.Debug|x64.ActiveCfg = Debug|x64
+		{C5BC6CB2-581A-44EC-9DB0-52CC1ED9384B}.Debug|x64.Build.0 = Debug|x64
+		{C5BC6CB2-581A-44EC-9DB0-52CC1ED9384B}.Release|Win32.ActiveCfg = Release|Win32
+		{C5BC6CB2-581A-44EC-9DB0-52CC1ED9384B}.Release|Win32.Build.0 = Release|Win32
+		{C5BC6CB2-581A-44EC-9DB0-52CC1ED9384B}.Release|x64.ActiveCfg = Release|x64
+		{C5BC6CB2-581A-44EC-9DB0-52CC1ED9384B}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

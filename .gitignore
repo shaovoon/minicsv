@@ -15,6 +15,7 @@
 *.iobj
 *.ilk
 *.db
+*.opendb
 
 */[dD]ebug/
 */[rR]elease/
