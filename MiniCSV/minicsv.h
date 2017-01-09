@@ -270,7 +270,7 @@ namespace mini
 
 				if (trim_quote_on_str)
 				{
-					if (!src.empty() && (src[0] == trim_quote || src[src.size() - 1] == trim_quote))
+					if (!src.empty() && (src[0] == trim_quote && src[src.size() - 1] == trim_quote))
 					{
 						src = src.substr(1, src.size() - 2);
 					}
@@ -730,7 +730,7 @@ namespace mini
 				src = unescape_str.empty() ? src : replace(src, unescape_str, delimiter);
 				if (trim_quote_on_str)
 				{
-					if (!src.empty() && (src[0] == trim_quote || src[src.size() - 1] == trim_quote))
+					if (!src.empty() && (src[0] == trim_quote && src[src.size() - 1] == trim_quote))
 					{
 						src = src.substr(1, src.size() - 2);
 					}
