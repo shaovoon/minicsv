@@ -68,30 +68,6 @@ namespace mini
 			return src;
 		}
 
-		inline std::string trim(const std::string& str, const std::string& trimChars)
-		{
-			std::string result = "";
-
-			if (str.empty())
-				return result;
-
-			size_t startpos = str.find_first_not_of(trimChars);
-			size_t endpos = str.find_last_not_of(trimChars);
-
-			if (std::string::npos == startpos&&std::string::npos == endpos)
-				return str;
-
-			startpos = (std::string::npos == startpos) ? 0 : startpos;
-			endpos = (std::string::npos == endpos) ? str.size() : endpos;
-
-			if (startpos <= endpos)
-			{
-				result = str.substr(startpos, endpos - startpos + 1);
-			}
-
-			return result;
-		}
-
 		class sep // separator class for the stream, so that no need to call set_delimiter
 		{
 		public:
@@ -261,6 +237,13 @@ namespace mini
 					ch = this->str[pos];
 					if (trim_quote_on_str)
 					{
+						if (within_quote&& ch == trim_quote && this->str[pos + 1] == trim_quote)
+						{
+							token += ch;
+							pos += 2;
+							continue;
+						}
+
 						if (within_quote == false && ch == trim_quote && ((pos > 0 && this->str[pos - 1] == delimiter[0]) || pos == 0))
 							within_quote = true;
 						else if (within_quote && ch == trim_quote)
@@ -289,7 +272,7 @@ namespace mini
 				{
 					if (!src.empty() && (src[0] == trim_quote || src[src.size() - 1] == trim_quote))
 					{
-						src = trim(src, trim_quote_str);
+						src = src.substr(1, src.size() - 2);
 					}
 
 					if (std::string::npos != src.find(quote_unescape, 0))
@@ -714,6 +697,13 @@ namespace mini
 					ch = this->str[pos];
 					if (trim_quote_on_str)
 					{
+						if (within_quote&& ch == trim_quote && this->str[pos + 1] == trim_quote)
+						{
+							token += ch;
+							pos += 2;
+							continue;
+						}
+
 						if (within_quote == false && ch == trim_quote && ((pos > 0 && this->str[pos - 1] == delimiter[0]) || pos == 0))
 							within_quote = true;
 						else if (within_quote && ch == trim_quote)
@@ -742,7 +732,7 @@ namespace mini
 				{
 					if (!src.empty() && (src[0] == trim_quote || src[src.size() - 1] == trim_quote))
 					{
-						src = trim(src, trim_quote_str);
+						src = src.substr(1, src.size() - 2);
 					}
 
 					if (std::string::npos != src.find(quote_unescape, 0))
