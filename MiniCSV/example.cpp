@@ -1,120 +1,82 @@
 #include "minicsv.h"
 #include <iostream>
 
-struct Product
-{
-	Product() : name(""), qty(0), price(0.0f) {}
-	Product(std::string name_, int qty_, float price_) : name(name_), qty(qty_), price(price_) {}
-	std::string name;
-	int qty;
-	float price;
-};
+using namespace mini;
 
-template<>
-inline mini::csv::istringstream& operator >> (mini::csv::istringstream& istm, Product& val)
-{
-	return istm >> val.name >> val.qty >> val.price;
-}
+#define MYASSERT(value, expected) if(value != expected) { std::cerr << value << " and expected:" << expected << " are different" << std::endl; return false;}
 
-template<>
-inline mini::csv::ostringstream& operator << (mini::csv::ostringstream& ostm, const Product& val)
-{
-	return ostm << val.name << val.qty << val.price;
-}
-
+bool test(const std::string& name, int qty, bool enable_quote);
+bool test_input(const std::string& str, const std::string& expected_str, int expected_qty, bool enable_quote);
 
 int main()
 {
-	// test file streams
-	{
-		mini::csv::ofstream os("products.txt");
-		os.set_delimiter(',', "$$");
-		os.enable_surround_quote_on_str(true, '\"');
-		if (os.is_open())
-		{
-			Product product("Shampoo", 200, 15.0f);
-			os << product.name << product.qty << product.price << NEWLINE;
-			Product product2("Towel, Soap, \"Shower Foam\"", 300, 6.0f);
-			os << product2.name << product2.qty << product2.price << NEWLINE;
-		}
-		os.flush();
-		os.close();
-		
-		mini::csv::ifstream is("products.txt");
-		is.set_delimiter(',', "$$");
-		is.enable_trim_quote_on_str(true, '\"');
+	test("Fruits", 100, true);
+	test("", 200, true);
+	test("Fruits, Vegetable", 300, true);
+	test("Fruits", 400, false);
+	test("", 500, false);
 
-		if (is.is_open())
-		{
-			Product product;
-			while (is.read_line())
-			{
-				try
-				{
-					is >> product.name >> product.qty >> product.price;
-				}
-				catch (std::runtime_error& e)
-				{
-					std::cerr << e.what() << std::endl;
-				}
-				// display the read items
-				std::cout << product.name << "," << product.qty << "," << product.price << std::endl;
-			}
-		}
-	}
-	
-	// test string streams using overloaded stream operators for Product
-	{
-		mini::csv::ostringstream os;
-		os.set_delimiter(',', "$$");
-		Product product("Shampoo", 200, 15.0f);
-		os << product << NEWLINE;
-		Product product2("Towel, Soap, Shower Foam", 300, 6.0f);
-		os << product2 << NEWLINE;
-
-		mini::csv::istringstream is(os.get_text().c_str());
-		is.set_delimiter(',', "$$");
-		Product prod;
-		while (is.read_line())
-		{
-			try
-			{
-				is >> prod;
-			}
-			catch (std::runtime_error& e)
-			{
-				std::cerr << e.what() << std::endl;
-			}
-
-			// display the read items
-			std::cout << prod.name << "|" << prod.qty << "|" << prod.price << std::endl;
-		}
-	}
-
-	{
-		mini::csv::istringstream is("vt:22,44,66");
-		is.set_delimiter(',', "$$");
-		mini::csv::sep colon(':', "<colon>");
-		mini::csv::sep comma(',', "<comma>");
-		while (is.read_line())
-		{
-			std::string type;
-			int r = 0, b = 0, g = 0;
-			try
-			{
-				is >> colon >> type >> comma >> r >> b >> g;
-			}
-			catch (std::runtime_error& e)
-			{
-				std::cerr << e.what() << std::endl;
-			}
-
-			// display the read items
-			std::cout << type << "|" << r << "|" << b << "|" << g << std::endl;
-		}
-	}
-
-	return 0;
+	test_input("\"He said: \"\"the more, the merrier\"\"\",66", "He said: \"the more, the merrier\"", 66, true);
 }
 
+bool test_input(const std::string& str, const std::string& expected_str, int expected_qty, bool enable_quote)
+{
+	//csv::istringstream is("\"He said: \"\"the more, the merrier\"\"\":22,44,66");
+	csv::istringstream is(str.c_str());
+	is.set_delimiter(',', "$$");
+	is.enable_trim_quote_on_str(enable_quote, '\"');
 
+	std::string dest_name = "";
+	int dest_qty = 0;
+
+	while (is.read_line())
+	{
+		try
+		{
+			is >> dest_name >> dest_qty;
+
+			MYASSERT(dest_name, expected_str);
+			MYASSERT(dest_qty, expected_qty);
+		}
+		catch (std::runtime_error& e)
+		{
+			std::cerr << e.what() << std::endl;
+		}
+	}
+}
+
+bool test(const std::string& name, int qty, bool enable_quote)
+{
+	csv::ostringstream os;
+	os.set_delimiter(',', "$$");
+	os.enable_surround_quote_on_str(enable_quote, '\"');
+
+	os << name << qty << NEWLINE;
+	os << name << qty + 1 << NEWLINE;
+
+	csv::istringstream is(os.get_text().c_str());
+	is.set_delimiter(',', "$$");
+	is.enable_trim_quote_on_str(enable_quote, '\"');
+
+	std::string dest_name = "";
+	int dest_qty = 0;
+
+	int cnt = 0;
+	while (is.read_line())
+	{
+		try
+		{
+			is >> dest_name >> dest_qty;
+
+			MYASSERT(dest_name, name);
+			MYASSERT(dest_qty, qty + cnt);
+
+			++cnt;
+		}
+		catch (std::runtime_error& e)
+		{
+			std::cerr << e.what() << std::endl;
+		}
+	}
+	return true;
+}
