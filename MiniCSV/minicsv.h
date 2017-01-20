@@ -45,6 +45,12 @@
 
 #define NEWLINE '\n'
 
+#ifdef _WIN32
+	#define MY_FUNC_SIG __FUNCSIG__
+#else
+	#define MY_FUNC_SIG __PRETTY_FUNCTION__
+#endif
+
 namespace mini
 {
 
@@ -481,26 +487,14 @@ mini::csv::ifstream& operator >> (mini::csv::ifstream& istm, T& val)
 	}
 	catch (boost::bad_lexical_cast& e)
 	{
-#ifdef _WIN32
-		const std::string function_site = __FUNCSIG__;
-#else
-		const std::string function_site = __PRETTY_FUNCTION__;
-#endif
-
-		throw std::runtime_error(istm.error_line(str, function_site).c_str());
+		throw std::runtime_error(istm.error_line(str, MY_FUNC_SIG).c_str());
 	}
 #else
 	std::istringstream is(str);
 	is >> val;
 	if (!(bool)is)
 	{
-#ifdef _WIN32
-		const std::string function_site = __FUNCSIG__;
-#else
-		const std::string function_site = __PRETTY_FUNCTION__;
-#endif
-
-		throw std::runtime_error(istm.error_line(str, function_site).c_str());
+		throw std::runtime_error(istm.error_line(str, MY_FUNC_SIG).c_str());
 	}
 #endif
 
@@ -906,26 +900,14 @@ mini::csv::istringstream& operator >> (mini::csv::istringstream& istm, T& val)
 	}
 	catch (boost::bad_lexical_cast& e)
 	{
-#ifdef _WIN32
-		const std::string function_site = __FUNCSIG__;
-#else
-		const std::string function_site = __PRETTY_FUNCTION__;
-#endif
-
-		throw std::runtime_error(istm.error_line(str, function_site).c_str());
+		throw std::runtime_error(istm.error_line(str, MY_FUNC_SIG).c_str());
 	}
 #else
 	std::istringstream is(str);
 	is >> val;
 	if (!(bool)is)
 	{
-#ifdef _WIN32
-		const std::string function_site = __FUNCSIG__;
-#else
-		const std::string function_site = __PRETTY_FUNCTION__;
-#endif
-
-		throw std::runtime_error(istm.error_line(str, function_site).c_str());
+		throw std::runtime_error(istm.error_line(str, MY_FUNC_SIG).c_str());
 	}
 #endif
 
