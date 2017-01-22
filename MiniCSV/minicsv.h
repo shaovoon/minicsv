@@ -27,6 +27,7 @@
 // version 1.8.0  : Add meaningful error message for data conversion during reading
 // version 1.8.1  : Put under the mini namespace
 // version 1.8.2  : Optimize input stream.
+// version 1.8.3  : Add unit test and enable to use 2 quotes to escape 1 quote
 
 //#define USE_BOOST_LEXICAL_CAST
 
