@@ -11,7 +11,7 @@
 
 //#define USE_LONG_STRINGS
 
-#ifdef WIN32
+#ifdef _MSC_VER
 
 #pragma optimize("", off)
 template <class T>
