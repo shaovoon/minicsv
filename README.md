@@ -111,7 +111,7 @@ int main()
 }
 ```
 
-Version 1.7.10 added separator class for the stream, so that no need to call set_delimiter() repeatedly if delimiter keep changing
+Version 1.7.10 added separator class for the stream, so that delimiter can be changed on the fly.
 
 ```cpp
 csv::istringstream is("vt:33,44,66");
