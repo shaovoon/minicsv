@@ -6,6 +6,8 @@ using namespace mini;
 #define MYASSERT(func, value, expected) if(value != expected) { std::cerr << func << "() received:" << value << " and expected:" << expected << " are different" << std::endl; return false;}
 
 bool test(const std::string& name, int qty, bool enable_quote);
+bool test_char(const std::string& name, char ch, bool enable_quote);
+bool test_nchar(const std::string& name, char ch, bool enable_quote);
 bool test_file(const std::string& file, const std::string& name, int qty, bool enable_quote);
 bool test_input(const std::string& str, const std::string& expected_str, int expected_qty, bool enable_quote);
 bool test_get_rest_of_line(const std::string& name);
@@ -20,6 +22,18 @@ int main()
 	test("Fruits, Vegetable", 300, true);
 	test("Fruits", 400, false);
 	test("", 500, false);
+
+	test_char("Fruits", 'A', true);
+	test_char("", 'B', true);
+	test_char("Fruits, Vegetable", 'G', true);
+	test_char("Fruits", 'H', false);
+	test_char("", 'J', false);
+
+	test_nchar("Fruits", 65, true);
+	test_nchar("", 66, true);
+	test_nchar("Fruits, Vegetable", 67, true);
+	test_nchar("Fruits", 68, false);
+	test_nchar("", 69, false);
 
 	test_file("test_file1.txt", "Fruits", 100, true);
 	test_file("test_file2.txt", "", 200, true);
@@ -99,6 +113,78 @@ bool test(const std::string& name, int qty, bool enable_quote)
 		}
 	}
 	MYASSERT(__FUNCTION__, cnt, 2);
+	return true;
+}
+
+bool test_char(const std::string& name, char ch, bool enable_quote)
+{
+	csv::ostringstream os;
+	os.set_delimiter(',', "$$");
+	os.enable_surround_quote_on_str(enable_quote, '\"');
+
+	os << name << ch << NEWLINE;
+
+	csv::istringstream is(os.get_text().c_str());
+	is.set_delimiter(',', "$$");
+	is.enable_trim_quote_on_str(enable_quote, '\"');
+
+	std::string dest_name = "";
+	char dest_char = 0;
+
+	int cnt = 0;
+	while (is.read_line())
+	{
+		try
+		{
+			is >> dest_name >> dest_char;
+
+			MYASSERT(__FUNCTION__, dest_name, name);
+			MYASSERT(__FUNCTION__, dest_char, ch);
+
+			++cnt;
+		}
+		catch (std::runtime_error& e)
+		{
+			std::cerr << __FUNCTION__ << e.what() << std::endl;
+		}
+	}
+	MYASSERT(__FUNCTION__, cnt, 1);
+	return true;
+}
+
+bool test_nchar(const std::string& name, char ch, bool enable_quote)
+{
+	csv::ostringstream os;
+	os.set_delimiter(',', "$$");
+	os.enable_surround_quote_on_str(enable_quote, '\"');
+
+	os << name << csv::NChar(ch) << NEWLINE;
+
+	csv::istringstream is(os.get_text().c_str());
+	is.set_delimiter(',', "$$");
+	is.enable_trim_quote_on_str(enable_quote, '\"');
+
+	std::string dest_name = "";
+	char dest_char = 0;
+
+	int cnt = 0;
+	while (is.read_line())
+	{
+		try
+		{
+			is >> dest_name >> csv::NChar(dest_char);
+
+			MYASSERT(__FUNCTION__, dest_name, name);
+			MYASSERT(__FUNCTION__, dest_char, ch);
+
+			++cnt;
+		}
+		catch (std::runtime_error& e)
+		{
+			std::cerr << __FUNCTION__ << e.what() << std::endl;
+		}
+	}
+	MYASSERT(__FUNCTION__, cnt, 1);
 	return true;
 }
 

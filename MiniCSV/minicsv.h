@@ -28,6 +28,7 @@
 // version 1.8.1  : Put under the mini namespace
 // version 1.8.2  : Optimize input stream.
 // version 1.8.3  : Add unit test and enable to use 2 quotes to escape 1 quote
+// version 1.8.4  : Add NChar class and fix error of no delimiter written for char type.
 
 //#define USE_BOOST_LEXICAL_CAST
 
@@ -57,6 +58,16 @@ namespace mini
 
 	namespace csv
 	{
+		struct NChar
+		{
+			explicit NChar(char& ch_) : ch(ch_) {}
+			const char& getChar() const { return ch; }
+			char& getChar() { return ch; }
+			void setChar(char ch_) { ch = ch_; }
+		private:
+			char& ch;
+		};
+
 		inline std::string const & replace(std::string & src, std::string const & to_find, std::string const & to_replace)
 		{
 			size_t pos = 0;
@@ -517,6 +528,55 @@ inline mini::csv::ifstream& operator >> (mini::csv::ifstream& istm, mini::csv::s
 	return istm;
 }
 
+inline mini::csv::ifstream& operator >> (mini::csv::ifstream& istm, mini::csv::NChar val)
+{
+	const std::string& str = istm.get_delimited_str();
+
+	int n = 0;
+#ifdef USE_BOOST_LEXICAL_CAST
+	try
+	{
+		n = boost::lexical_cast<T>(str);
+	}
+	catch (boost::bad_lexical_cast& e)
+	{
+		throw std::runtime_error(istm.error_line(str, MY_FUNC_SIG).c_str());
+	}
+#else
+	std::istringstream is(str);
+	is >> n;
+	if (!(bool)is)
+	{
+		throw std::runtime_error(istm.error_line(str, MY_FUNC_SIG).c_str());
+	}
+#endif
+
+	if (n > 127 || n < -128)
+	{
+		throw std::runtime_error(istm.error_line(str, MY_FUNC_SIG).c_str());
+	}
+
+	char temp = static_cast<char>(n);
+	val.setChar(temp);
+
+	return istm;
+}
+
+template<>
+inline mini::csv::ifstream& operator >> (mini::csv::ifstream& istm, char& val)
+{
+	const std::string& src = istm.get_delimited_str();
+
+	if (src.empty())
+	{
+		throw std::runtime_error(istm.error_line(src, MY_FUNC_SIG).c_str());
+	}
+
+	val = src[0];
+
+	return istm;
+}
+
 template<typename T>
 mini::csv::ofstream& operator << (mini::csv::ofstream& ostm, const T& val)
 {
@@ -584,15 +644,35 @@ inline mini::csv::ofstream& operator << (mini::csv::ofstream& ostm, const char& 
 	}
 	else
 	{
-		std::ostringstream os_temp;
+		if (!ostm.get_after_newline())
+			ostm.get_ofstream() << ostm.get_delimiter();
 
-		os_temp << val;
+		std::string temp = "";
+		temp += val;
+		ostm.escape_str_and_output(temp);
 
-		ostm.escape_and_output(os_temp.str());
+		ostm.set_after_newline(false);
 	}
 
 	return ostm;
 }
+
+inline mini::csv::ofstream& operator << (mini::csv::ofstream& ostm, mini::csv::NChar val)
+{
+	if (!ostm.get_after_newline())
+		ostm.get_ofstream() << ostm.get_delimiter();
+
+	std::ostringstream os_temp;
+
+	os_temp << static_cast<int>(val.getChar());
+
+	ostm.escape_and_output(os_temp.str());
+
+	ostm.set_after_newline(false);
+
+	return ostm;
+}
+
 template<>
 inline mini::csv::ofstream& operator << (mini::csv::ofstream& ostm, const char* val)
 {
@@ -930,6 +1010,55 @@ inline mini::csv::istringstream& operator >> (mini::csv::istringstream& istm, mi
 	return istm;
 }
 
+inline mini::csv::istringstream& operator >> (mini::csv::istringstream& istm, mini::csv::NChar val)
+{
+	const std::string& str = istm.get_delimited_str();
+
+	int n = 0;
+#ifdef USE_BOOST_LEXICAL_CAST
+	try
+	{
+		n = boost::lexical_cast<T>(str);
+	}
+	catch (boost::bad_lexical_cast& e)
+	{
+		throw std::runtime_error(istm.error_line(str, MY_FUNC_SIG).c_str());
+	}
+#else
+	std::istringstream is(str);
+	is >> n;
+	if (!(bool)is)
+	{
+		throw std::runtime_error(istm.error_line(str, MY_FUNC_SIG).c_str());
+	}
+#endif
+
+	if (n > 127 || n < -128)
+	{
+		throw std::runtime_error(istm.error_line(str, MY_FUNC_SIG).c_str());
+	}
+
+	char temp = static_cast<char>(n);
+	val.setChar(temp);
+
+	return istm;
+}
+
+template<>
+inline mini::csv::istringstream& operator >> (mini::csv::istringstream& istm, char& val)
+{
+	const std::string& src = istm.get_delimited_str();
+
+	if (src.empty())
+	{
+		throw std::runtime_error(istm.error_line(src, MY_FUNC_SIG).c_str());
+	}
+
+	val = src[0];
+
+	return istm;
+}
+
 template<typename T>
 mini::csv::ostringstream& operator << (mini::csv::ostringstream& ostm, const T& val)
 {
@@ -994,15 +1123,35 @@ inline mini::csv::ostringstream& operator << (mini::csv::ostringstream& ostm, co
 	}
 	else
 	{
-		std::ostringstream os_temp;
+		if (!ostm.get_after_newline())
+			ostm.get_ostringstream() << ostm.get_delimiter();
 
-		os_temp << val;
+		std::string temp = "";
+		temp += val;
+		ostm.escape_str_and_output(temp);
 
-		ostm.escape_and_output(os_temp.str());
+		ostm.set_after_newline(false);
 	}
 
 	return ostm;
 }
+
+inline mini::csv::ostringstream& operator << (mini::csv::ostringstream& ostm, mini::csv::NChar val)
+{
+	if (!ostm.get_after_newline())
+		ostm.get_ostringstream() << ostm.get_delimiter();
+
+	std::ostringstream os_temp;
+
+	os_temp << static_cast<int>(val.getChar());
+
+	ostm.escape_and_output(os_temp.str());
+
+	ostm.set_after_newline(false);
+
+	return ostm;
+}
+
 template<>
 inline mini::csv::ostringstream& operator << (mini::csv::ostringstream& ostm, const char* val)
 {
