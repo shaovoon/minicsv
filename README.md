@@ -111,7 +111,7 @@ int main()
 }
 ```
 
-*Version 1.7.10* added separator class for the stream, so that delimiter can be changed on the fly.
+**Version 1.7.10** added separator class for the stream, so that delimiter can be changed on the fly.
 
 ```cpp
 csv::istringstream is("vt:33,44,66");
@@ -128,7 +128,7 @@ while (is.read_line())
 }
 ```
 
-*Version 1.8.4* fixed some char output problems and added NChar (char wrapper) class to write to numeric value[-127..128] to char variables.
+**Version 1.8.4** fixed some char output problems and added NChar (char wrapper) class to write to numeric value[-127..128] to char variables.
 
 ```cpp
 bool test_nchar(bool enable_quote)
