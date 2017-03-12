@@ -16,6 +16,9 @@
 *.ilk
 *.db
 *.opendb
+*.db-wal
+*.db-shm
+*.ipch
 
 */[dD]ebug/
 */[rR]elease/
