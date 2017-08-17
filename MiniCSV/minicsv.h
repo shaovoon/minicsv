@@ -45,7 +45,8 @@
 #	include <boost/lexical_cast.hpp>
 #endif
 
-#define NEWLINE '\n'
+// Avoid conflict with same name
+static const char NEWLINE = '\n';
 
 #ifdef _WIN32
 	#define MY_FUNC_SIG __FUNCSIG__
@@ -222,7 +223,8 @@ namespace mini
 						}
 					}
 
-					if (this->str.empty())
+					// Handle with additional line with some control charactor in Excel generated file
+					if (this->str.empty() || str.find(delimiter) == std::string::npos)
 					{
 						if (terminate_on_blank_line)
 							break;
@@ -577,6 +579,35 @@ inline mini::csv::ifstream& operator >> (mini::csv::ifstream& istm, char& val)
 	return istm;
 }
 
+// See unsigned char as a 8-bit int, not char
+template<>
+inline mini::csv::ifstream& operator >> (mini::csv::ifstream& istm, unsigned char& val)
+{
+    const std::string& str = istm.get_delimited_str();
+    if (str.empty())
+    {
+        // Empty field is allowed
+        return istm;
+    }
+
+    unsigned int n = 0;
+    std::istringstream is(str);
+    is >> n;
+    if (!(bool)is)
+    {
+        throw std::runtime_error(istm.error_line(str, MY_FUNC_SIG).c_str());
+    }
+
+    if (n > 255)
+    {
+        throw std::runtime_error(istm.error_line(str, MY_FUNC_SIG).c_str());
+    }
+
+    val = static_cast<unsigned char>(n);
+
+    return istm;
+}
+
 template<typename T>
 mini::csv::ofstream& operator << (mini::csv::ofstream& ostm, const T& val)
 {
@@ -739,7 +770,8 @@ namespace mini
 					std::getline(istm, this->str);
 					pos = 0;
 
-					if (this->str.empty())
+					// Handle with additional line with some control charactor in Excel generated file
+					if (this->str.empty() || str.find(delimiter) == std::string::npos)
 					{
 						if (terminate_on_blank_line)
 							break;
@@ -974,6 +1006,11 @@ mini::csv::istringstream& operator >> (mini::csv::istringstream& istm, T& val)
 {
 	const std::string& str = istm.get_delimited_str();
 
+    if (str.empty())
+    {
+        // Empty field is allowed
+        return istm;
+    }
 #ifdef USE_BOOST_LEXICAL_CAST
 	try
 	{
@@ -1013,6 +1050,11 @@ inline mini::csv::istringstream& operator >> (mini::csv::istringstream& istm, mi
 inline mini::csv::istringstream& operator >> (mini::csv::istringstream& istm, mini::csv::NChar val)
 {
 	const std::string& str = istm.get_delimited_str();
+    if (str.empty())
+    {
+        // Empty field is allowed
+        return istm;
+    }
 
 	int n = 0;
 #ifdef USE_BOOST_LEXICAL_CAST
@@ -1048,15 +1090,45 @@ template<>
 inline mini::csv::istringstream& operator >> (mini::csv::istringstream& istm, char& val)
 {
 	const std::string& src = istm.get_delimited_str();
-
-	if (src.empty())
-	{
-		throw std::runtime_error(istm.error_line(src, MY_FUNC_SIG).c_str());
-	}
+    if (src.empty())
+    {
+//		throw std::runtime_error(istm.error_line(src, MY_FUNC_SIG).c_str());
+        // Empty field is allowed
+        return istm;
+    }
 
 	val = src[0];
 
 	return istm;
+}
+
+// See unsigned char as a 8-bit int, not char
+template<>
+inline mini::csv::istringstream& operator >> (mini::csv::istringstream& istm, unsigned char& val)
+{
+    const std::string& str = istm.get_delimited_str();
+    if (str.empty())
+    {
+        // Empty field is allowed
+        return istm;
+    }
+
+    unsigned int n = 0;
+    std::istringstream is(str);
+    is >> n;
+    if (!(bool)is)
+    {
+        throw std::runtime_error(istm.error_line(str, MY_FUNC_SIG).c_str());
+    }
+
+    if (n > 255)
+    {
+        throw std::runtime_error(istm.error_line(str, MY_FUNC_SIG).c_str());
+    }
+
+    val = static_cast<unsigned char>(n);
+
+    return istm;
 }
 
 template<typename T>
