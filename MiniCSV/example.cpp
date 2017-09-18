@@ -5,10 +5,10 @@ using namespace mini;
 
 #define MYASSERT(func, value, expected) if(value != expected) { std::cerr << func << "() received:" << value << " and expected:" << expected << " are different" << std::endl; return false;}
 
-bool test(const std::string& name, int qty, bool enable_quote);
+bool test(const std::string& name, int qty, bool enable_quote, char delimiter, const std::string& escape);
 bool test_char(const std::string& name, char ch, bool enable_quote);
 bool test_nchar(const std::string& name, char ch, bool enable_quote);
-bool test_file(const std::string& file, const std::string& name, int qty, bool enable_quote);
+bool test_file(const std::string& file, const std::string& name, int qty, bool enable_quote, char delimiter, const std::string& escape);
 bool test_input(const std::string& str, const std::string& expected_str, int expected_qty, bool enable_quote);
 bool test_get_rest_of_line(const std::string& name);
 bool test_file_get_rest_of_line(const std::string& name);
@@ -17,11 +17,12 @@ bool test_file_write_double_quotes(const std::string& name, int qty, bool enable
 
 int main()
 {
-	test("Fruits", 100, true);
-	test("", 200, true);
-	test("Fruits, Vegetable", 300, true);
-	test("Fruits", 400, false);
-	test("", 500, false);
+	test("Fruits", 100, true, ',', "$$");
+	test("", 200, true, ',', "$$");
+	test("Fruits, Vegetable", 300, true, ',', "$$");
+	test("Fruits", 400, false, ',', "$$");
+	test("", 500, false, ',', "$$");
+	test("Hello,World", 600, false, ',', "");
 
 	test_char("Fruits", 'A', true);
 	test_char("", 'B', true);
@@ -35,11 +36,12 @@ int main()
 	test_nchar("Fruits", 68, false);
 	test_nchar("", 69, false);
 
-	test_file("test_file1.txt", "Fruits", 100, true);
-	test_file("test_file2.txt", "", 200, true);
-	test_file("test_file3.txt", "Fruits, Vegetable", 300, true);
-	test_file("test_file4.txt", "Fruits", 400, false);
-	test_file("test_file5.txt", "", 500, false);
+	test_file("test_file1.txt", "Fruits", 100, true, ',', "$$");
+	test_file("test_file2.txt", "", 200, true, ',', "$$");
+	test_file("test_file3.txt", "Fruits, Vegetable", 300, true, ',', "$$");
+	test_file("test_file4.txt", "Fruits", 400, false, ',', "$$");
+	test_file("test_file5.txt", "", 500, false, ',', "$$");
+	test_file("test_file6.txt", "Hello,World", 600, false, ',', "");
 
 	test_input("\"He said: \"\"the more, the merrier\"\"\",66", "He said: \"the more, the merrier\"", 66, true);
 	test_write_double_quotes("He said: \"the more, the merrier\"", 66, true);
@@ -79,17 +81,17 @@ bool test_input(const std::string& str, const std::string& expected_str, int exp
 	MYASSERT(__FUNCTION__, cnt, 1);
 }
 
-bool test(const std::string& name, int qty, bool enable_quote)
+bool test(const std::string& name, int qty, bool enable_quote, char delimiter, const std::string& escape)
 {
 	csv::ostringstream os;
-	os.set_delimiter(',', "$$");
+	os.set_delimiter(delimiter, escape);
 	os.enable_surround_quote_on_str(enable_quote, '\"');
 
 	os << name << qty << NEWLINE;
 	os << name << qty + 1 << NEWLINE;
 
 	csv::istringstream is(os.get_text().c_str());
-	is.set_delimiter(',', "$$");
+	is.set_delimiter(delimiter, escape);
 	is.enable_trim_quote_on_str(enable_quote, '\"');
 
 	std::string dest_name = "";
@@ -188,10 +190,10 @@ bool test_nchar(const std::string& name, char ch, bool enable_quote)
 	return true;
 }
 
-bool test_file(const std::string& file, const std::string& name, int qty, bool enable_quote)
+bool test_file(const std::string& file, const std::string& name, int qty, bool enable_quote, char delimiter, const std::string& escape)
 {
 	csv::ofstream os(file.c_str());
-	os.set_delimiter(',', "$$");
+	os.set_delimiter(delimiter, escape);
 	os.enable_surround_quote_on_str(enable_quote, '\"');
 
 	os << name << qty << NEWLINE;
@@ -201,7 +203,7 @@ bool test_file(const std::string& file, const std::string& name, int qty, bool e
 	os.close();
 
 	csv::ifstream is(file.c_str());
-	is.set_delimiter(',', "$$");
+	is.set_delimiter(delimiter, escape);
 	is.enable_trim_quote_on_str(enable_quote, '\"');
 
 	std::string dest_name = "";

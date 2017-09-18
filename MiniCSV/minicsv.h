@@ -29,6 +29,7 @@
 // version 1.8.2  : Optimize input stream.
 // version 1.8.3  : Add unit test and enable to use 2 quotes to escape 1 quote
 // version 1.8.4  : Add NChar class and fix error of no delimiter written for char type.
+// version 1.8.5  : Can have an unescaped delimiter which will be enclosed by quote automatically
 
 //#define USE_BOOST_LEXICAL_CAST
 
@@ -253,7 +254,7 @@ namespace mini
 					}
 
 					ch = this->str[pos];
-					if (trim_quote_on_str)
+					//if (trim_quote_on_str)
 					{
 						if (within_quote&& ch == trim_quote && this->str[pos + 1] == trim_quote)
 						{
@@ -286,7 +287,7 @@ namespace mini
 			{
 				src = unescape_str.empty() ? src : replace(src, unescape_str, delimiter);
 
-				if (trim_quote_on_str)
+				//if (trim_quote_on_str)
 				{
 					if (!src.empty() && (src[0] == trim_quote && src[src.size() - 1] == trim_quote))
 					{
@@ -307,7 +308,7 @@ namespace mini
 					return 0;
 
 				size_t cnt = 0;
-				if (trim_quote_on_str)
+				//if (trim_quote_on_str)
 				{
 					bool inside_quote = false;
 					for (size_t i = 0; i < str.size(); ++i)
@@ -321,10 +322,6 @@ namespace mini
 								++cnt;
 						}
 					}
-				}
-				else
-				{
-					cnt = std::count(str.begin(), str.end(), delimiter[0]);
 				}
 				return cnt;
 			}
@@ -460,7 +457,7 @@ namespace mini
 			void escape_str_and_output(std::string src)
 			{
 				src = ((escape_str.empty()) ? src : replace(src, delimiter, escape_str));
-				if (surround_quote_on_str)
+				if (surround_quote_on_str || src.find(delimiter) != std::string::npos)
 				{
 					if (!quote_escape.empty())
 					{
@@ -770,7 +767,7 @@ namespace mini
 					}
 
 					ch = this->str[pos];
-					if (trim_quote_on_str)
+					//if (trim_quote_on_str)
 					{
 						if (within_quote&& ch == trim_quote && this->str[pos + 1] == trim_quote)
 						{
@@ -803,7 +800,7 @@ namespace mini
 			std::string unescape(std::string & src)
 			{
 				src = unescape_str.empty() ? src : replace(src, unescape_str, delimiter);
-				if (trim_quote_on_str)
+				//if (trim_quote_on_str)
 				{
 					if (!src.empty() && (src[0] == trim_quote && src[src.size() - 1] == trim_quote))
 					{
@@ -824,7 +821,7 @@ namespace mini
 					return 0;
 
 				size_t cnt = 0;
-				if (trim_quote_on_str)
+				//if (trim_quote_on_str)
 				{
 					bool inside_quote = false;
 					for (size_t i = 0; i < str.size(); ++i)
@@ -838,10 +835,6 @@ namespace mini
 								++cnt;
 						}
 					}
-				}
-				else
-				{
-					cnt = std::count(str.begin(), str.end(), delimiter[0]);
 				}
 				return cnt;
 			}
@@ -941,7 +934,7 @@ namespace mini
 			void escape_str_and_output(std::string src)
 			{
 				src = ((escape_str.empty()) ? src : replace(src, delimiter, escape_str));
-				if (surround_quote_on_str)
+				if (surround_quote_on_str || src.find(delimiter) != std::string::npos)
 				{
 					if (!quote_escape.empty())
 					{
