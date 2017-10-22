@@ -533,7 +533,7 @@ inline mini::csv::ifstream& operator >> (mini::csv::ifstream& istm, mini::csv::N
 #ifdef USE_BOOST_LEXICAL_CAST
 	try
 	{
-		n = boost::lexical_cast<T>(str);
+		n = boost::lexical_cast<int>(str);
 	}
 	catch (boost::bad_lexical_cast& e)
 	{
@@ -1011,7 +1011,7 @@ inline mini::csv::istringstream& operator >> (mini::csv::istringstream& istm, mi
 #ifdef USE_BOOST_LEXICAL_CAST
 	try
 	{
-		n = boost::lexical_cast<T>(str);
+		n = boost::lexical_cast<int>(str);
 	}
 	catch (boost::bad_lexical_cast& e)
 	{
