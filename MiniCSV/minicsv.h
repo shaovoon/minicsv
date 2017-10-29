@@ -30,6 +30,7 @@
 // version 1.8.3  : Add unit test and enable to use 2 quotes to escape 1 quote
 // version 1.8.4  : Add NChar class and fix error of no delimiter written for char type.
 // version 1.8.5  : Can have an unescaped delimiter which will be enclosed by quote automatically
+// version 1.8.5b : Compilation error fix for NCHar
 
 //#define USE_BOOST_LEXICAL_CAST
 
