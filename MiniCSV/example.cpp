@@ -79,6 +79,7 @@ bool test_input(const std::string& str, const std::string& expected_str, int exp
 		}
 	}
 	MYASSERT(__FUNCTION__, cnt, 1);
+	return true;
 }
 
 bool test(const std::string& name, int qty, bool enable_quote, char delimiter, const std::string& escape)

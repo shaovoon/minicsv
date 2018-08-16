@@ -118,6 +118,7 @@ namespace mini
 				, filename("")
 				, line_num(0)
 				, token_num(0)
+				, allow_blank_line(false)
 			{
 				open(file);
 			}
@@ -163,6 +164,7 @@ namespace mini
 				filename = "";
 				line_num = 0;
 				token_num = 0;
+				allow_blank_line = false;
 			}
 			void close()
 			{
@@ -178,6 +180,10 @@ namespace mini
 				trim_quote = quote;
 				trim_quote_str = std::string(1, trim_quote);
 				quote_unescape = unescape;
+			}
+			void enable_blank_line(bool enable)
+			{
+				allow_blank_line = enable;
 			}
 			// eof is replaced by read_line
 			//bool eof() const
@@ -228,7 +234,7 @@ namespace mini
 					{
 						if (terminate_on_blank_line)
 							break;
-						else
+						else if (allow_blank_line == false)
 							continue;
 					}
 
@@ -369,6 +375,7 @@ namespace mini
 			size_t line_num;
 			size_t token_num;
 			std::string token;
+			bool allow_blank_line;
 		};
 
 		class ofstream
@@ -716,6 +723,7 @@ namespace mini
 				quote_unescape = "&quot;";
 				line_num = 0;
 				token_num = 0;
+				allow_blank_line = false;
 			}
 			void enable_trim_quote_on_str(bool enable, char quote, const std::string& unescape = "&quot;")
 			{
@@ -723,6 +731,10 @@ namespace mini
 				trim_quote = quote;
 				trim_quote_str = std::string(1, trim_quote);
 				quote_unescape = unescape;
+			}
+			void enable_blank_line(bool enable)
+			{
+				allow_blank_line = enable;
 			}
 			void set_delimiter(char delimiter_, std::string const & unescape_str_)
 			{
@@ -754,7 +766,7 @@ namespace mini
 					{
 						if (terminate_on_blank_line)
 							break;
-						else
+						else if (allow_blank_line == false)
 							continue;
 					}
 
@@ -891,6 +903,7 @@ namespace mini
 			size_t line_num;
 			size_t token_num;
 			std::string token;
+			bool allow_blank_line;
 		};
 
 		class ostringstream
