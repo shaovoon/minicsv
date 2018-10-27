@@ -31,6 +31,7 @@
 // version 1.8.4  : Add NChar class and fix error of no delimiter written for char type.
 // version 1.8.5  : Can have an unescaped delimiter which will be enclosed by quote automatically
 // version 1.8.5b : Compilation error fix for NCHar
+// version 1.8.5c : Change from _WIN32 to _MSC_VER for the macro check for MY_FUNC_SIG
 
 //#define USE_BOOST_LEXICAL_CAST
 
@@ -49,7 +50,7 @@
 
 #define NEWLINE '\n'
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 	#define MY_FUNC_SIG __FUNCSIG__
 #else
 	#define MY_FUNC_SIG __PRETTY_FUNCTION__
