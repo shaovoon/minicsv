@@ -177,5 +177,5 @@ Output
 Wallet, 56
 ```
 
-
 [CodeProject Tutorial](http://www.codeproject.com/Articles/741183/Minimalistic-CSV-Streams)
+[Maplestory make use of MiniCSV library](https://www.nexon.co.jp/rule/license.aspx)
