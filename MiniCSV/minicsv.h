@@ -1,6 +1,6 @@
 // The MIT License (MIT)
-// Minimalistic CSV Streams 1.8.2
-// Copyright (C) 2014 - 2016, by Wong Shao Voon (shaovoon@yahoo.com)
+// Minimalistic CSV Streams 1.8.5c
+// Copyright (C) 2014 - 2019, by Wong Shao Voon (shaovoon@yahoo.com)
 //
 // http://opensource.org/licenses/MIT
 //
