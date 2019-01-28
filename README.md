@@ -180,7 +180,7 @@ Wallet, 56
 [CodeProject Tutorial](http://www.codeproject.com/Articles/741183/Minimalistic-CSV-Streams)
 
 ## FAQ
-_Why do the reader stream encounter errors with csv with text not enclosed within quotes_
+__Why do the reader stream encounter errors for csv with text not enclosed within quotes?__
 
 Ans: To resolve it, Please remember to call enable_trim_quote_on_str with false.
 
