@@ -19,13 +19,13 @@ struct Product
 
 int main()
 {
-    csv::ofstream os("products.txt", std::ios_base::out);
+    csv::ofstream os("products.txt");
 	// For version 1.8.5 and above, give empty string 
 	// for the escape string(2nd parameter).
 	// Text with comma delimiter will be 
 	// enclosed with quotes to be
 	// compatible with MS Excel CSV format.
-    os.set_delimiter(',', "");
+    os.set_delimiter(',', "$$");
     if(os.is_open())
     {
         Product product("Shampoo", 200, 15.0f);
@@ -46,7 +46,7 @@ This is a example on how to read from the same CSV.
 
 int main()
 {
-    csv::ifstream is("products.txt", std::ios_base::in);
+    csv::ifstream is("products.txt");
     is.set_delimiter(',', "$$");
     if(is.is_open())
     {
