@@ -1,5 +1,5 @@
 // The MIT License (MIT)
-// Minimalistic CSV Streams 1.8.5c
+// Minimalistic CSV Streams 1.8.5d
 // Copyright (C) 2014 - 2019, by Wong Shao Voon (shaovoon@yahoo.com)
 //
 // http://opensource.org/licenses/MIT
@@ -32,7 +32,7 @@
 // version 1.8.5  : Can have an unescaped delimiter which will be enclosed by quote automatically
 // version 1.8.5b : Compilation error fix for NCHar
 // version 1.8.5c : Change from _WIN32 to _MSC_VER for the macro check for MY_FUNC_SIG
-
+// version 1.8.5d : Unescape quote infinite loop fix
 //#define USE_BOOST_LEXICAL_CAST
 
 #ifndef MiniCSV_H
@@ -302,7 +302,7 @@ namespace mini
 						src = src.substr(1, src.size() - 2);
 					}
 
-					if (std::string::npos != src.find(quote_unescape, 0))
+					if (!quote_unescape.empty() && std::string::npos != src.find(quote_unescape, 0))
 					{
 						src = replace(src, quote_unescape, trim_quote_str);
 					}
