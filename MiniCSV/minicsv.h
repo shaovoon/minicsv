@@ -1,6 +1,6 @@
 // The MIT License (MIT)
 // Minimalistic CSV Streams 1.8.5d
-// Copyright (C) 2014 - 2019, by Wong Shao Voon (shaovoon@yahoo.com)
+// Copyright (C) 2014 - 2021, by Wong Shao Voon (shaovoon@yahoo.com)
 //
 // http://opensource.org/licenses/MIT
 //
@@ -834,7 +834,7 @@ namespace mini
 						src = src.substr(1, src.size() - 2);
 					}
 
-					if (std::string::npos != src.find(quote_unescape, 0))
+					if (!quote_unescape.empty() && std::string::npos != src.find(quote_unescape, 0))
 					{
 						src = replace(src, quote_unescape, trim_quote_str);
 					}
