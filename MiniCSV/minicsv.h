@@ -33,6 +33,7 @@
 // version 1.8.5b : Compilation error fix for NCHar
 // version 1.8.5c : Change from _WIN32 to _MSC_VER for the macro check for MY_FUNC_SIG
 // version 1.8.5d : Unescape quote infinite loop fix
+// version 1.8.5e : Put common functions in the base class, hereby reducing 160 LOC
 //#define USE_BOOST_LEXICAL_CAST
 
 #ifndef MiniCSV_H
@@ -101,12 +102,11 @@ namespace mini
 			const std::string escape;
 		};
 
-		class ifstream
+		class istream_base
 		{
 		public:
-			ifstream(const std::string& file="")
-				: str("")
-				, pos(0)
+			istream_base()
+				: pos(0)
 				, delimiter(",")
 				, unescape_str("##")
 				, trim_quote_on_str(false)
@@ -114,16 +114,185 @@ namespace mini
 				, trim_quote_str(1, trim_quote)
 				, terminate_on_blank_line(true)
 				, quote_unescape("&quot;")
-				, has_bom(false)
-				, first_line_read(false)
-				, filename("")
 				, line_num(0)
 				, token_num(0)
 				, allow_blank_line(false)
 			{
+			}
+			// eof is replaced by read_line
+			//bool eof() const
+			void set_delimiter(char delimiter_, std::string const& unescape_str_)
+			{
+				delimiter = delimiter_;
+				unescape_str = unescape_str_;
+			}
+			std::string const& get_delimiter() const
+			{
+				return delimiter;
+			}
+			const std::string& get_delimited_str()
+			{
+				token = "";
+				char ch = '\0';
+				bool within_quote = false;
+				do
+				{
+					if (pos >= this->str.size())
+					{
+						this->str = "";
+
+						++token_num;
+						token = unescape(token);
+						return token;
+					}
+
+					ch = this->str[pos];
+					//if (trim_quote_on_str)
+					{
+						if (within_quote && ch == trim_quote && this->str[pos + 1] == trim_quote)
+						{
+							token += ch;
+							pos += 2;
+							continue;
+						}
+
+						if (within_quote == false && ch == trim_quote && ((pos > 0 && this->str[pos - 1] == delimiter[0]) || pos == 0))
+							within_quote = true;
+						else if (within_quote && ch == trim_quote)
+							within_quote = false;
+					}
+
+					++(pos);
+
+					if (ch == delimiter[0] && within_quote == false)
+						break;
+					if (ch == '\r' || ch == '\n')
+						break;
+
+					token += ch;
+				} while (true);
+
+				++token_num;
+				token = unescape(token);
+				return token;
+			}
+			void enable_trim_quote_on_str(bool enable, char quote, const std::string& unescape = "&quot;")
+			{
+				trim_quote_on_str = enable;
+				trim_quote = quote;
+				trim_quote_str = std::string(1, trim_quote);
+				quote_unescape = unescape;
+			}
+			std::string get_rest_of_line() const
+			{
+				return str.substr(pos);
+			}
+
+		protected:
+			void enable_blank_line(bool enable)
+			{
+				allow_blank_line = enable;
+			}
+			std::string const& get_unescape_str() const
+			{
+				return unescape_str;
+			}
+			std::string unescape(std::string& src)
+			{
+				src = unescape_str.empty() ? src : replace(src, unescape_str, delimiter);
+
+				//if (trim_quote_on_str)
+				{
+					if (!src.empty() && (src[0] == trim_quote && src[src.size() - 1] == trim_quote))
+					{
+						src = src.substr(1, src.size() - 2);
+					}
+
+					if (!quote_unescape.empty() && std::string::npos != src.find(quote_unescape, 0))
+					{
+						src = replace(src, quote_unescape, trim_quote_str);
+					}
+				}
+
+				return src;
+			}
+			size_t num_of_delimiter() const
+			{
+				if (delimiter.size() == 0)
+					return 0;
+
+				size_t cnt = 0;
+				//if (trim_quote_on_str)
+				{
+					bool inside_quote = false;
+					for (size_t i = 0; i < str.size(); ++i)
+					{
+						if (str[i] == trim_quote)
+							inside_quote = !inside_quote;
+
+						if (!inside_quote)
+						{
+							if (str[i] == delimiter[0])
+								++cnt;
+						}
+					}
+				}
+				return cnt;
+			}
+			const std::string& get_line() const
+			{
+				return str;
+			}
+			void enable_terminate_on_blank_line(bool enable)
+			{
+				terminate_on_blank_line = enable;
+			}
+			bool is_terminate_on_blank_line() const
+			{
+				return terminate_on_blank_line;
+			}
+		public:
+			std::string error_line(const std::string& token, const std::string& function_site)
+			{
+				std::ostringstream is;
+				is << "csv::istream_base Conversion error at line no.:" << line_num
+					<< ", filename:" << filename << ", token position:" << token_num
+					<< ", token:" << token << ", function:" << function_site;
+
+				return is.str();
+			}
+
+		protected:
+			std::string str;
+			size_t pos;
+			std::string delimiter;
+			std::string unescape_str;
+			bool trim_quote_on_str;
+			char trim_quote;
+			std::string trim_quote_str;
+			bool terminate_on_blank_line;
+			std::string quote_unescape;
+			bool has_bom;
+			bool first_line_read;
+			std::string filename;
+			size_t line_num;
+			size_t token_num;
+			std::string token;
+			bool allow_blank_line;
+
+		};
+		class ifstream : public istream_base
+		{
+		public:
+			ifstream(const std::string& file="")
+				: istream_base()
+				, has_bom(false)
+				, first_line_read(false)
+			{
 				open(file);
 			}
 			ifstream(const char * file)
+				: istream_base()
 			{
 				open(file);
 			}
@@ -175,32 +344,6 @@ namespace mini
 			{
 				return istm.is_open();
 			}
-			void enable_trim_quote_on_str(bool enable, char quote, const std::string& unescape = "&quot;")
-			{
-				trim_quote_on_str = enable;
-				trim_quote = quote;
-				trim_quote_str = std::string(1, trim_quote);
-				quote_unescape = unescape;
-			}
-			void enable_blank_line(bool enable)
-			{
-				allow_blank_line = enable;
-			}
-			// eof is replaced by read_line
-			//bool eof() const
-			void set_delimiter(char delimiter_, std::string const & unescape_str_)
-			{
-				delimiter = delimiter_;
-				unescape_str = unescape_str_;
-			}
-			std::string const &  get_delimiter() const
-			{
-				return delimiter;
-			}
-			std::string const &  get_unescape_str() const
-			{
-				return unescape_str;
-			}
 			void skip_line()
 			{
 				if (!istm.eof())
@@ -245,145 +388,17 @@ namespace mini
 				}
 				return false;
 			}
-			const std::string& get_delimited_str()
-			{
-				token = "";
-				char ch = '\0';
-				bool within_quote = false;
-				do
-				{
-					if (pos >= this->str.size())
-					{
-						this->str = "";
-
-						++token_num;
-						token = unescape(token);
-						return token;
-					}
-
-					ch = this->str[pos];
-					//if (trim_quote_on_str)
-					{
-						if (within_quote&& ch == trim_quote && this->str[pos + 1] == trim_quote)
-						{
-							token += ch;
-							pos += 2;
-							continue;
-						}
-
-						if (within_quote == false && ch == trim_quote && ((pos > 0 && this->str[pos - 1] == delimiter[0]) || pos == 0))
-							within_quote = true;
-						else if (within_quote && ch == trim_quote)
-							within_quote = false;
-					}
-
-					++(pos);
-
-					if (ch == delimiter[0] && within_quote == false)
-						break;
-					if (ch == '\r' || ch == '\n')
-						break;
-
-					token += ch;
-				} while (true);
-
-				++token_num;
-				token = unescape(token);
-				return token;
-			}
-			std::string unescape(std::string & src)
-			{
-				src = unescape_str.empty() ? src : replace(src, unescape_str, delimiter);
-
-				//if (trim_quote_on_str)
-				{
-					if (!src.empty() && (src[0] == trim_quote && src[src.size() - 1] == trim_quote))
-					{
-						src = src.substr(1, src.size() - 2);
-					}
-
-					if (!quote_unescape.empty() && std::string::npos != src.find(quote_unescape, 0))
-					{
-						src = replace(src, quote_unescape, trim_quote_str);
-					}
-				}
-
-				return src;
-			}
-			size_t num_of_delimiter() const
-			{
-				if (delimiter.size() == 0)
-					return 0;
-
-				size_t cnt = 0;
-				//if (trim_quote_on_str)
-				{
-					bool inside_quote = false;
-					for (size_t i = 0; i < str.size(); ++i)
-					{
-						if (str[i] == trim_quote)
-							inside_quote = !inside_quote;
-
-						if (!inside_quote)
-						{
-							if (str[i] == delimiter[0])
-								++cnt;
-						}
-					}
-				}
-				return cnt;
-			}
-			std::string get_rest_of_line() const
-			{
-				return str.substr(pos);
-			}
-			const std::string& get_line() const
-			{
-				return str;
-			}
-			void enable_terminate_on_blank_line(bool enable)
-			{
-				terminate_on_blank_line = enable;
-			}
-			bool is_terminate_on_blank_line() const
-			{
-				return terminate_on_blank_line;
-			}
-			std::string error_line(const std::string& token, const std::string& function_site)
-			{
-				std::ostringstream is;
-				is << "csv::ifstream Conversion error at line no.:" << line_num 
-				   << ", filename:" << filename << ", token position:" << token_num 
-				   << ", token:" << token << ", function:" << function_site;
-
-				return is.str();
-			}
 
 		private:
 			std::ifstream istm;
-			std::string str;
-			size_t pos;
-			std::string delimiter;
-			std::string unescape_str;
-			bool trim_quote_on_str;
-			char trim_quote;
-			std::string trim_quote_str;
-			bool terminate_on_blank_line;
-			std::string quote_unescape;
 			bool has_bom;
 			bool first_line_read;
 			std::string filename;
-			size_t line_num;
-			size_t token_num;
-			std::string token;
-			bool allow_blank_line;
 		};
-
-		class ofstream
+		class ostream_base
 		{
 		public:
-
-			ofstream(const std::string& file = "")
+			ostream_base()
 				: after_newline(true)
 				, delimiter(",")
 				, escape_str("##")
@@ -391,9 +406,56 @@ namespace mini
 				, surround_quote('\"')
 				, quote_escape("&quot;")
 			{
+			}
+		public:
+			void enable_surround_quote_on_str(bool enable, char quote, const std::string& escape = "&quot;")
+			{
+				surround_quote_on_str = enable;
+				surround_quote = quote;
+				quote_escape = escape;
+			}
+			void set_delimiter(char delimiter_, std::string const& escape_str_)
+			{
+				delimiter = delimiter_;
+				escape_str = escape_str_;
+			}
+			std::string const& get_delimiter() const
+			{
+				return delimiter;
+			}
+			void set_after_newline(bool after_newline_)
+			{
+				after_newline = after_newline_;
+			}
+			bool get_after_newline() const
+			{
+				return after_newline;
+			}
+		protected:
+			std::string const& get_escape_str() const
+			{
+				return escape_str;
+			}
+		protected:
+			bool after_newline;
+			std::string delimiter;
+			std::string escape_str;
+			bool surround_quote_on_str;
+			char surround_quote;
+			std::string quote_escape;
+
+		};
+		class ofstream : public ostream_base
+		{
+		public:
+
+			ofstream(const std::string& file = "")
+				: ostream_base()
+			{
 				open(file);
 			}
 			ofstream(const char * file)
+				: ostream_base()
 			{
 				open(file);
 			}
@@ -428,33 +490,6 @@ namespace mini
 			{
 				return ostm.is_open();
 			}
-			void enable_surround_quote_on_str(bool enable, char quote, const std::string& escape = "&quot;")
-			{
-				surround_quote_on_str = enable;
-				surround_quote = quote;
-				quote_escape = escape;
-			}
-			void set_delimiter(char delimiter_, std::string const & escape_str_)
-			{
-				delimiter = delimiter_;
-				escape_str = escape_str_;
-			}
-			std::string const &  get_delimiter() const
-			{
-				return delimiter;
-			}
-			std::string const &  get_escape_str() const
-			{
-				return escape_str;
-			}
-			void set_after_newline(bool after_newline_)
-			{
-				after_newline = after_newline_;
-			}
-			bool get_after_newline() const
-			{
-				return after_newline;
-			}
 			std::ofstream& get_ofstream()
 			{
 				return ostm;
@@ -481,12 +516,6 @@ namespace mini
 			}
 		private:
 			std::ofstream ostm;
-			bool after_newline;
-			std::string delimiter;
-			std::string escape_str;
-			bool surround_quote_on_str;
-			char surround_quote;
-			std::string quote_escape;
 		};
 
 
@@ -693,15 +722,16 @@ namespace mini
 {
 	namespace csv
 	{
-
-		class istringstream
+		class istringstream : public istream_base
 		{
 		public:
 			istringstream(const char * text)
+				: istream_base()
 			{
 				set_new_input_string(text);
 			}
 			istringstream(const std::string& text)
+				: istream_base()
 			{
 				set_new_input_string(text);
 			}
@@ -725,30 +755,6 @@ namespace mini
 				line_num = 0;
 				token_num = 0;
 				allow_blank_line = false;
-			}
-			void enable_trim_quote_on_str(bool enable, char quote, const std::string& unescape = "&quot;")
-			{
-				trim_quote_on_str = enable;
-				trim_quote = quote;
-				trim_quote_str = std::string(1, trim_quote);
-				quote_unescape = unescape;
-			}
-			void enable_blank_line(bool enable)
-			{
-				allow_blank_line = enable;
-			}
-			void set_delimiter(char delimiter_, std::string const & unescape_str_)
-			{
-				delimiter = delimiter_;
-				unescape_str = unescape_str_;
-			}
-			std::string const & get_delimiter() const
-			{
-				return delimiter;
-			}
-			std::string const &  get_unescape_str() const
-			{
-				return unescape_str;
 			}
 			void skip_line()
 			{
@@ -777,175 +783,17 @@ namespace mini
 				}
 				return false;
 			}
-			const std::string& get_delimited_str()
-			{
-				token = "";
-				char ch = '\0';
-				bool within_quote = false;
-				do
-				{
-					if (pos >= this->str.size())
-					{
-						this->str = "";
-
-						++token_num;
-						token = unescape(token);
-						return token;
-					}
-
-					ch = this->str[pos];
-					//if (trim_quote_on_str)
-					{
-						if (within_quote&& ch == trim_quote && this->str[pos + 1] == trim_quote)
-						{
-							token += ch;
-							pos += 2;
-							continue;
-						}
-
-						if (within_quote == false && ch == trim_quote && ((pos > 0 && this->str[pos - 1] == delimiter[0]) || pos == 0))
-							within_quote = true;
-						else if (within_quote && ch == trim_quote)
-							within_quote = false;
-					}
-
-					++(pos);
-
-					if (ch == delimiter[0] && within_quote == false)
-						break;
-					if (ch == '\r' || ch == '\n')
-						break;
-
-					token += ch;
-				} while (true);
-
-				++token_num;
-				token = unescape(token);
-				return token;
-			}
-
-			std::string unescape(std::string & src)
-			{
-				src = unescape_str.empty() ? src : replace(src, unescape_str, delimiter);
-				//if (trim_quote_on_str)
-				{
-					if (!src.empty() && (src[0] == trim_quote && src[src.size() - 1] == trim_quote))
-					{
-						src = src.substr(1, src.size() - 2);
-					}
-
-					if (!quote_unescape.empty() && std::string::npos != src.find(quote_unescape, 0))
-					{
-						src = replace(src, quote_unescape, trim_quote_str);
-					}
-				}
-				return src;
-			}
-
-			size_t num_of_delimiter() const
-			{
-				if (delimiter.size() == 0)
-					return 0;
-
-				size_t cnt = 0;
-				//if (trim_quote_on_str)
-				{
-					bool inside_quote = false;
-					for (size_t i = 0; i < str.size(); ++i)
-					{
-						if (str[i] == trim_quote)
-							inside_quote = !inside_quote;
-
-						if (!inside_quote)
-						{
-							if (str[i] == delimiter[0])
-								++cnt;
-						}
-					}
-				}
-				return cnt;
-			}
-			std::string get_rest_of_line() const
-			{
-				return str.substr(pos);
-			}
-			const std::string& get_line() const
-			{
-				return str;
-			}
-			void enable_terminate_on_blank_line(bool enable)
-			{
-				terminate_on_blank_line = enable;
-			}
-			bool is_terminate_on_blank_line() const
-			{
-				return terminate_on_blank_line;
-			}
-			std::string error_line(const std::string& token, const std::string& function_site)
-			{
-				std::ostringstream is;
-				is << "csv::istringstream conversion error at line no.:" << line_num 
-				   << ", token position:" << token_num << ", token:" << token
-				   << ", function:" << function_site;
-				return is.str();
-			}
 
 		private:
 			std::istringstream istm;
-			std::string str;
-			size_t pos;
-			std::string delimiter;
-			std::string unescape_str;
-			bool trim_quote_on_str;
-			char trim_quote;
-			std::string trim_quote_str;
-			bool terminate_on_blank_line;
-			std::string quote_unescape;
-			size_t line_num;
-			size_t token_num;
-			std::string token;
-			bool allow_blank_line;
 		};
 
-		class ostringstream
+		class ostringstream : public ostream_base
 		{
 		public:
-
 			ostringstream()
-				: after_newline(true)
-				, delimiter(",")
-				, escape_str("##")
-				, surround_quote_on_str(false)
-				, surround_quote('\"')
-				, quote_escape("&quot;")
+				: ostream_base()
 			{
-			}
-			void enable_surround_quote_on_str(bool enable, char quote, const std::string& escape = "&quot;")
-			{
-				surround_quote_on_str = enable;
-				surround_quote = quote;
-				quote_escape = escape;
-			}
-			void set_delimiter(char delimiter_, std::string const & escape_str_)
-			{
-				delimiter = delimiter_;
-				escape_str = escape_str_;
-			}
-			std::string const & get_delimiter() const
-			{
-				return delimiter;
-			}
-			std::string const &  get_escape_str() const
-			{
-				return escape_str;
-			}
-			void set_after_newline(bool after_newline_)
-			{
-				after_newline = after_newline_;
-			}
-			bool get_after_newline() const
-			{
-				return after_newline;
 			}
 			std::ostringstream& get_ostringstream()
 			{
@@ -978,12 +826,6 @@ namespace mini
 
 		private:
 			std::ostringstream ostm;
-			bool after_newline;
-			std::string delimiter;
-			std::string escape_str;
-			bool surround_quote_on_str;
-			char surround_quote;
-			std::string quote_escape;
 		};
 
 
@@ -1182,6 +1024,5 @@ inline mini::csv::ostringstream& operator << (mini::csv::ostringstream& ostm, co
 
 	return ostm;
 }
-
 
 #endif // MiniCSV_H
