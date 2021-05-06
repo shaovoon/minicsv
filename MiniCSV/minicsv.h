@@ -1,5 +1,5 @@
 // The MIT License (MIT)
-// Minimalistic CSV Streams 1.8.5d
+// Minimalistic CSV Streams 1.8.6
 // Copyright (C) 2014 - 2021, by Wong Shao Voon (shaovoon@yahoo.com)
 //
 // http://opensource.org/licenses/MIT
@@ -34,6 +34,7 @@
 // version 1.8.5c : Change from _WIN32 to _MSC_VER for the macro check for MY_FUNC_SIG
 // version 1.8.5d : Unescape quote infinite loop fix
 // version 1.8.5e : Put common functions in the base class, hereby reducing 160 LOC
+// version 1.8.6  : Escape newlines when detected in the string input.
 //#define USE_BOOST_LEXICAL_CAST
 
 #ifndef MiniCSV_H
@@ -114,10 +115,19 @@ namespace mini
 				, trim_quote_str(1, trim_quote)
 				, terminate_on_blank_line(true)
 				, quote_unescape("&quot;")
+				, newline_unescape("&newline;")
 				, line_num(0)
 				, token_num(0)
 				, allow_blank_line(false)
 			{
+			}
+			void set_newline_unescape(std::string const& newline_unescape_)
+			{
+				newline_unescape = newline_unescape_;
+			}
+			std::string const& get_newline_unescape() const
+			{
+				return newline_unescape;
 			}
 			// eof is replaced by read_line
 			//bool eof() const
@@ -208,6 +218,11 @@ namespace mini
 						src = src.substr(1, src.size() - 2);
 					}
 
+					if (!newline_unescape.empty() && std::string::npos != src.find(newline_unescape, 0))
+					{
+						src = replace(src, newline_unescape, "\n");
+					}
+
 					if (!quote_unescape.empty() && std::string::npos != src.find(quote_unescape, 0))
 					{
 						src = replace(src, quote_unescape, trim_quote_str);
@@ -272,14 +287,12 @@ namespace mini
 			std::string trim_quote_str;
 			bool terminate_on_blank_line;
 			std::string quote_unescape;
-			bool has_bom;
-			bool first_line_read;
+			std::string newline_unescape;
 			std::string filename;
 			size_t line_num;
 			size_t token_num;
 			std::string token;
 			bool allow_blank_line;
-
 		};
 		class ifstream : public istream_base
 		{
@@ -405,6 +418,7 @@ namespace mini
 				, surround_quote_on_str(false)
 				, surround_quote('\"')
 				, quote_escape("&quot;")
+				, newline_escape("&newline;")
 			{
 			}
 		public:
@@ -413,6 +427,14 @@ namespace mini
 				surround_quote_on_str = enable;
 				surround_quote = quote;
 				quote_escape = escape;
+			}
+			void set_newline_escape(std::string const& newline_escape_)
+			{
+				newline_escape = newline_escape_;
+			}
+			std::string const& get_newline_escape() const
+			{
+				return newline_escape;
 			}
 			void set_delimiter(char delimiter_, std::string const& escape_str_)
 			{
@@ -443,7 +465,7 @@ namespace mini
 			bool surround_quote_on_str;
 			char surround_quote;
 			std::string quote_escape;
-
+			std::string newline_escape;
 		};
 		class ofstream : public ostream_base
 		{
@@ -501,6 +523,10 @@ namespace mini
 			void escape_str_and_output(std::string src)
 			{
 				src = ((escape_str.empty()) ? src : replace(src, delimiter, escape_str));
+				if (!newline_escape.empty())
+				{
+					src = replace(src, std::string(1, '\n'), newline_escape);
+				}
 				if (surround_quote_on_str || src.find(delimiter) != std::string::npos)
 				{
 					if (!quote_escape.empty())
@@ -810,6 +836,10 @@ namespace mini
 			void escape_str_and_output(std::string src)
 			{
 				src = ((escape_str.empty()) ? src : replace(src, delimiter, escape_str));
+				if (!newline_escape.empty())
+				{
+					src = replace(src, std::string(1, '\n'), newline_escape);
+				}
 				if (surround_quote_on_str || src.find(delimiter) != std::string::npos)
 				{
 					if (!quote_escape.empty())

@@ -42,6 +42,7 @@ int main()
 	test_file("test_file4.txt", "Fruits", 400, false, ',', "$$");
 	test_file("test_file5.txt", "", 500, false, ',', "$$");
 	test_file("test_file6.txt", "Hello,World", 600, false, ',', "");
+	test_file("test_file7.txt", "Fruits\nWorld", 700, true, ',', "$$");
 
 	test_input("\"He said: \"\"the more, the merrier\"\"\",66", "He said: \"the more, the merrier\"", 66, true);
 	test_write_double_quotes("He said: \"the more, the merrier\"", 66, true);
