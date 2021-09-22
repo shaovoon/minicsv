@@ -10,7 +10,7 @@ This is a example on how to write to CSV.
 struct Product
 {
     Product() : name(""), qty(0), price(0.0f) {}
-    Product(std::string name_, int qty_, float price_) 
+    Product(const std::string& name_, int qty_, float price_) 
         : name(name_), qty(qty_), price(price_) {}
     std::string name;
     int qty;
