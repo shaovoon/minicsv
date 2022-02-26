@@ -287,6 +287,8 @@ std::string const& get_newline_escape() const;
 
 // Set delimiter and its escaped text, meaning the delimiter shall be
 // replaced with this unescaped text if delimiter is encountered in the output.
+// For version 1.8.5 and above, give empty string for the escape string(2nd parameter) for
+// text with comma delimiter will be enclosed with quotes to be compatible with MS Excel CSV format.
 void set_delimiter(char delimiter_, std::string const& escape_str_);
 
 // Get delimiter.
