@@ -1,6 +1,6 @@
 # C++: Minimalistic CSV Streams
 
-Bare minimal CSV stream based on C++ file streams where the stream operator can be overloaded for your custom type. The delimiter can be changed on the fly to enable parsing text file format with different delimiters. Newline, delmiiter and quotes encountered in the input shall be escaped accordingly, vice versa with output. Escape and unescape text can be changed.
+MiniCSV is a header-only, bare minimal CSV stream based on C++ file streams where the stream operator can be overloaded for your custom type. Its delimiter can be changed on the fly to enable parsing text file format with different delimiters. Newline, delmiiter and quote that is encountered in the input are escaped accordingly. Escape and unescape text can be changed.
 
 This is a example on how to write to CSV.
 
