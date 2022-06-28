@@ -20,11 +20,11 @@ struct Product
 int main()
 {
     csv::ofstream os("products.txt");
-	// For version 1.8.5 and above, give empty string 
-	// for the escape string(2nd parameter).
-	// Text with comma delimiter will be 
-	// enclosed with quotes to be
-	// compatible with MS Excel CSV format.
+    // For version 1.8.5 and above, give empty string 
+    // for the escape string(2nd parameter).
+    // Text with comma delimiter will be 
+    // enclosed with quotes to be
+    // compatible with MS Excel CSV format.
     os.set_delimiter(',', "$$");
     if(os.is_open())
     {
@@ -94,27 +94,27 @@ inline csv::ostringstream& operator << (csv::ostringstream& ostm, const Product&
 int main()
 {
     // test string streams using overloaded stream operators for Product
-	csv::ostringstream os;
-	// For version 1.8.5 and above, give empty string 
-	// for the escape string(2nd parameter).
-	// Text with comma delimiter will be 
-	// enclosed with quotes to be
-	// compatible with MS Excel CSV format.
-	os.set_delimiter(',', "");
-	Product product("Shampoo", 200, 15.0f);
-	os << product << NEWLINE;
-	Product product2("Towel, Soap, Shower Foam", 300, 6.0f);
-	os << product2 << NEWLINE;
+    csv::ostringstream os;
+    // For version 1.8.5 and above, give empty string 
+    // for the escape string(2nd parameter).
+    // Text with comma delimiter will be 
+    // enclosed with quotes to be
+    // compatible with MS Excel CSV format.
+    os.set_delimiter(',', "");
+    Product product("Shampoo", 200, 15.0f);
+    os << product << NEWLINE;
+    Product product2("Towel, Soap, Shower Foam", 300, 6.0f);
+    os << product2 << NEWLINE;
 
-	csv::istringstream is(os.get_text().c_str());
-	is.set_delimiter(',', "$$");
-	Product prod;
-	while (is.read_line())
-	{
-		is >> prod;
-		// display the read items
-		std::cout << prod.name << "|" << prod.qty << "|" << prod.price << std::endl;
-	}
+    csv::istringstream is(os.get_text().c_str());
+    is.set_delimiter(',', "$$");
+    Product prod;
+    while (is.read_line())
+    {
+        is >> prod;
+        // display the read items
+        std::cout << prod.name << "|" << prod.qty << "|" << prod.price << std::endl;
+    }
     return 0;
 }
 ```
@@ -133,10 +133,10 @@ while (is.read_line())
     is >> colon >> type >> comma >> r >> b >> g;
     // display the read items
     std::cout << type << "|" << r << "|" << b << "|" << g << std::endl;
-	
-	// Common mistake to forgot to call set_delimiter to 
-	// set to original delimiter before next line is read.
-	is.set_delimiter(',', "$$"); 
+    
+    // Common mistake to forgot to call set_delimiter to 
+    // set to original delimiter before next line is read.
+    is.set_delimiter(',', "$$"); 
 }
 ```
 
