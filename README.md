@@ -293,6 +293,15 @@ void set_delimiter(char delimiter_, std::string const& escape_str_);
 
 // Get delimiter.
 std::string const& get_delimiter() const;
+
+// Set float precision
+void set_precision(int precision_);
+
+// Get float precision
+int get_precision();
+
+// Reset float precision to zero
+void reset_precision();
 ```
 
 #### Public member functions of ofstream (File stream for writing)

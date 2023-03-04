@@ -15,6 +15,9 @@ bool test_file_get_rest_of_line(const std::string& name);
 bool test_write_double_quotes(const std::string& name, int qty, bool enable_quote);
 bool test_file_write_double_quotes(const std::string& name, int qty, bool enable_quote);
 
+bool test_file_precision(const std::string & file, const std::string & name, bool enable_quote, char delimiter, const std::string & escape);
+bool test_precision(const std::string & name, bool enable_quote, char delimiter, const std::string & escape);
+
 int main()
 {
 	test("Fruits", 100, true, ',', "$$");
@@ -50,6 +53,9 @@ int main()
 
 	test_get_rest_of_line("Fruits");
 	test_file_get_rest_of_line("Fruits");
+
+	//test_file_precision("test_file_precision.txt", "Fruits World", true, ',', "$$");
+	//test_precision("Fruits World", false, ',', "");
 
 	std::cout << "All test done!" << std::endl;
 }
@@ -117,6 +123,50 @@ bool test(const std::string& name, int qty, bool enable_quote, char delimiter, c
 		}
 	}
 	MYASSERT(__FUNCTION__, cnt, 2);
+	return true;
+}
+
+bool test_precision(const std::string& name, bool enable_quote, char delimiter, const std::string& escape)
+{
+	csv::ostringstream os;
+	os.set_delimiter(delimiter, escape);
+	os.enable_surround_quote_on_str(enable_quote, '\"');
+
+	double pi = 3.14159265359;
+	for (int i = 1; i < 12; ++i)
+	{
+		os.set_precision(i);
+		os << name << pi << name << NEWLINE;
+		//std::cout << std::fixed << std::showpoint << std::setprecision(i) << "Source PI: " << pi << std::endl;
+	}
+
+	csv::istringstream is(os.get_text().c_str());
+	is.set_delimiter(delimiter, escape);
+	is.enable_trim_quote_on_str(enable_quote, '\"');
+
+	std::string dest_name = "";
+	double dest_pi = 0.0;
+	std::string dest_name2 = "";
+
+	int cnt = 0;
+	while (is.read_line())
+	{
+		try
+		{
+			is >> dest_name >> dest_pi >> dest_name2;
+
+			std::cout << std::fixed << std::showpoint << std::setprecision(cnt + 1) << "PI: " << dest_pi << std::endl;
+
+			dest_pi = 0.0;
+
+			++cnt;
+		}
+		catch (std::runtime_error& e)
+		{
+			std::cerr << __FUNCTION__ << e.what() << std::endl;
+		}
+	}
+	MYASSERT(__FUNCTION__, cnt, 11);
 	return true;
 }
 
@@ -229,6 +279,53 @@ bool test_file(const std::string& file, const std::string& name, int qty, bool e
 		}
 	}
 	MYASSERT(__FUNCTION__, cnt, 2);
+	return true;
+}
+
+bool test_file_precision(const std::string& file, const std::string& name, bool enable_quote, char delimiter, const std::string& escape)
+{
+	csv::ofstream os(file.c_str());
+	os.set_delimiter(delimiter, escape);
+	os.enable_surround_quote_on_str(enable_quote, '\"');
+
+	double pi = 3.14159265359;
+	for (int i = 1; i < 12; ++i)
+	{
+		os.set_precision(i);
+		os << name << pi << name << NEWLINE;
+		//std::cout << std::fixed << std::showpoint << std::setprecision(i) << "Source PI: " << pi << std::endl;
+	}
+
+	os.flush();
+	os.close();
+
+	csv::ifstream is(file.c_str());
+	is.set_delimiter(delimiter, escape);
+	is.enable_trim_quote_on_str(enable_quote, '\"');
+
+	std::string dest_name = "";
+	double dest_pi = 0.0;
+	std::string dest_name2 = "";
+
+	int cnt = 0;
+	while (is.read_line())
+	{
+		try
+		{
+			is >> dest_name >> dest_pi >> dest_name2;
+
+			std::cout << std::fixed << std::showpoint << std::setprecision(cnt+1) << "PI: " << dest_pi << std::endl;
+
+			dest_pi = 0.0;
+
+			++cnt;
+		}
+		catch (std::runtime_error& e)
+		{
+			std::cerr << __FUNCTION__ << e.what() << std::endl;
+		}
+	}
+	MYASSERT(__FUNCTION__, cnt, 11);
 	return true;
 }
 

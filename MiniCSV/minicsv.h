@@ -1,6 +1,6 @@
 // The MIT License (MIT)
-// Minimalistic CSV Streams 1.8.6b
-// Copyright (C) 2014 - 2021, by Wong Shao Voon (shaovoon@yahoo.com)
+// Minimalistic CSV Streams 1.8.7
+// Copyright (C) 2014 - 2023, by Wong Shao Voon (shaovoon@yahoo.com)
 //
 // http://opensource.org/licenses/MIT
 //
@@ -36,6 +36,8 @@
 // version 1.8.5e : Put common functions in the base class, hereby reducing 160 LOC
 // version 1.8.6  : Escape newlines when detected in the string input.
 // version 1.8.6b : Set visibility of some methods of istream_base from protected to public
+// version 1.8.7  : Add set_precision() for float formatting for output stream
+
 //#define USE_BOOST_LEXICAL_CAST
 
 #ifndef MiniCSV_H
@@ -46,6 +48,7 @@
 #include <fstream>
 #include <algorithm>
 #include <stdexcept>
+#include <iomanip>
 
 #ifdef USE_BOOST_LEXICAL_CAST
 #	include <boost/lexical_cast.hpp>
@@ -419,6 +422,7 @@ namespace mini
 				, surround_quote('\"')
 				, quote_escape("&quot;")
 				, newline_escape("&newline;")
+				, precision(0)
 			{
 			}
 		public:
@@ -453,6 +457,18 @@ namespace mini
 			{
 				return after_newline;
 			}
+			void set_precision(int precision_)
+			{
+				precision = precision_;
+			}
+			int get_precision()
+			{
+				return precision;
+			}
+			void reset_precision()
+			{
+				precision = 0;
+			}
 		protected:
 			std::string const& get_escape_str() const
 			{
@@ -466,6 +482,7 @@ namespace mini
 			char surround_quote;
 			std::string quote_escape;
 			std::string newline_escape;
+			int precision;
 		};
 		class ofstream : public ostream_base
 		{
@@ -499,6 +516,7 @@ namespace mini
 				surround_quote_on_str = false;
 				surround_quote = '\"';
 				quote_escape = "&quot;";
+				precision = 0;
 			}
 			void flush()
 			{
@@ -744,6 +762,72 @@ inline mini::csv::ofstream& operator << (mini::csv::ofstream& ostm, const char* 
 	return ostm;
 }
 
+inline mini::csv::ofstream& operator << (mini::csv::ofstream& ostm, const float val)
+{
+	if (!ostm.get_after_newline())
+		ostm.get_ofstream() << ostm.get_delimiter();
+
+	// Need a temporary output stream as float output may contains a comma or the delimiter
+	std::ostringstream os_temp;
+
+	if (ostm.get_precision() > 0)
+	{
+		os_temp << std::fixed << std::showpoint << std::setprecision(ostm.get_precision());
+	}
+
+	os_temp << val;
+
+	ostm.escape_and_output(os_temp.str());
+
+	ostm.set_after_newline(false);
+
+	return ostm;
+}
+
+inline mini::csv::ofstream& operator << (mini::csv::ofstream& ostm, const double val)
+{
+	if (!ostm.get_after_newline())
+		ostm.get_ofstream() << ostm.get_delimiter();
+
+	// Need a temporary output stream as float output may contains a comma or the delimiter
+	std::ostringstream os_temp;
+
+	if (ostm.get_precision() > 0)
+	{
+		os_temp << std::fixed << std::showpoint << std::setprecision(ostm.get_precision());
+	}
+
+	os_temp << val;
+
+	ostm.escape_and_output(os_temp.str());
+
+	ostm.set_after_newline(false);
+
+	return ostm;
+}
+
+inline mini::csv::ofstream& operator << (mini::csv::ofstream& ostm, const long double val)
+{
+	if (!ostm.get_after_newline())
+		ostm.get_ofstream() << ostm.get_delimiter();
+
+	// Need a temporary output stream as float output may contains a comma or the delimiter
+	std::ostringstream os_temp;
+
+	if (ostm.get_precision() > 0)
+	{
+		os_temp << std::fixed << std::showpoint << std::setprecision(ostm.get_precision());
+	}
+
+	os_temp << val;
+
+	ostm.escape_and_output(os_temp.str());
+
+	ostm.set_after_newline(false);
+
+	return ostm;
+}
+
 namespace mini
 {
 	namespace csv
@@ -853,7 +937,6 @@ namespace mini
 					ostm << src;
 				}
 			}
-
 		private:
 			std::ostringstream ostm;
 		};
@@ -1051,6 +1134,72 @@ inline mini::csv::ostringstream& operator << (mini::csv::ostringstream& ostm, co
 	const std::string temp = val;
 
 	ostm << temp;
+
+	return ostm;
+}
+
+inline mini::csv::ostringstream& operator << (mini::csv::ostringstream& ostm, const float val)
+{
+	if (!ostm.get_after_newline())
+		ostm.get_ostringstream() << ostm.get_delimiter();
+
+	// Need a temporary output stream as float output may contains a comma or the delimiter
+	std::ostringstream os_temp;
+
+	if (ostm.get_precision() > 0)
+	{
+		os_temp << std::fixed << std::showpoint << std::setprecision(ostm.get_precision());
+	}
+
+	os_temp << val;
+
+	ostm.escape_and_output(os_temp.str());
+
+	ostm.set_after_newline(false);
+
+	return ostm;
+}
+
+inline mini::csv::ostringstream& operator << (mini::csv::ostringstream& ostm, const double val)
+{
+	if (!ostm.get_after_newline())
+		ostm.get_ostringstream() << ostm.get_delimiter();
+
+	// Need a temporary output stream as float output may contains a comma or the delimiter
+	std::ostringstream os_temp;
+
+	if (ostm.get_precision() > 0)
+	{
+		os_temp << std::fixed << std::showpoint << std::setprecision(ostm.get_precision());
+	}
+
+	os_temp << val;
+
+	ostm.escape_and_output(os_temp.str());
+
+	ostm.set_after_newline(false);
+
+	return ostm;
+}
+
+inline mini::csv::ostringstream& operator << (mini::csv::ostringstream& ostm, const long double val)
+{
+	if (!ostm.get_after_newline())
+		ostm.get_ostringstream() << ostm.get_delimiter();
+
+	// Need a temporary output stream as float output may contains a comma or the delimiter
+	std::ostringstream os_temp;
+
+	if (ostm.get_precision() > 0)
+	{
+		os_temp << std::fixed << std::showpoint << std::setprecision(ostm.get_precision());
+	}
+
+	os_temp << val;
+
+	ostm.escape_and_output(os_temp.str());
+
+	ostm.set_after_newline(false);
 
 	return ostm;
 }
