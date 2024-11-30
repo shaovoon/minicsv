@@ -17,6 +17,8 @@ struct Product
     float price;
 };
 
+using namespace mini;
+
 int main()
 {
     csv::ofstream os("products.txt");
@@ -43,6 +45,8 @@ This is a example on how to read from the same CSV.
 ```cpp
 #include "minicsv.h"
 #include <iostream>
+
+using namespace mini;
 
 int main()
 {
@@ -79,6 +83,8 @@ Towel, Soap, Shower Foam|300|6
 Here is on how to overload the operator for your custom type.
 
 ```cpp
+using namespace mini;
+
 template<>
 inline csv::istringstream& operator >> (csv::istringstream& istm, Product& val)
 {
@@ -122,6 +128,8 @@ int main()
 **Version 1.7.10** added separator class for the stream, so that delimiter can be changed on the fly.
 
 ```cpp
+using namespace mini;
+
 csv::istringstream is("vt:33,44,66");
 is.set_delimiter(',', "$$");
 csv::sep colon(':', "<colon>");
@@ -145,6 +153,8 @@ while (is.read_line())
 ```cpp
 bool test_nchar(bool enable_quote)
 {
+    using namespace mini;
+	
     csv::ostringstream os;
     os.set_delimiter(',', "$$");
     os.enable_surround_quote_on_str(enable_quote, '\"');
